@@ -1,10 +1,9 @@
 package com.JeneralDB;
 
-import bean.Person;
-
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -206,7 +205,7 @@ public class DBUtil {
     }
 
     public static int[] executeAsBatch(Connection con, List<String> sqlList) throws SQLException {
-        return executeAsBatch(con, sqlList.toArray(new String[] {}));
+        return executeAsBatch(con, sqlList.toArray(new String[]{}));
     }
 
     public static int[] executeAsBatch(Connection con, String[] sqlArray) throws SQLException {
@@ -244,33 +243,56 @@ public class DBUtil {
         }
     }
 
-//    public static <T> List<T> queryObjectList(Connection con, String sql, Class<T> objClass) throws SQLException {
-//        List<T> lists = new ArrayList<T>();
-//        Statement statement = null;
-//        ResultSet resultSet = null;
-//        try {
-//            statement = con.createStatement();
-//            resultSet = statement.executeQuery(sql);
-//            label : while (null != resultSet && resultSet.next()) {
-//                Constructor<?>[] constor = objClass.getConstructors();
-//                for (Constructor<?> c : constor) {
-//                    Object value = resultSet.getObject(1);
-//                    try {
-//                        lists.add((T) c.newInstance(value));
-//                        continue  label;
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        } finally {
-//            if (null != resultSet)
-//                resultSet.close();
-//            if (null != statement)
-//                statement.close();
-//        }
-//        return lists;
-//    }
+    public static int save(Connection conn, Object obj) throws SQLException {
+        if (obj == null)
+            throw new NullPointerException();
+        Class<?> t = obj.getClass();
+        String tableName = getTableName(t);
+        Field[] fields = t.getDeclaredFields();
+        StringBuilder sqlBuilder = new StringBuilder(" insert into ");
+        sqlBuilder.append(tableName);
+        sqlBuilder.append("( ");
+        int size = fields.length, columnNum = 0;
+        for (Field field : fields) {
+            String columnName = field.getName();
+            sqlBuilder.append(columnName);
+            if (columnNum++ < size - 1)
+                sqlBuilder.append(",");
+        }
+        sqlBuilder.append(" ) values (");
+        columnNum = 0;
+        for (Field field : fields) {
+            Object value = getFieldValueByName(field.getName(), obj);
+            sqlBuilder.append("'" +value.toString() + "'");
+            if (columnNum++ < size - 1)
+                sqlBuilder.append(",");
+        }
+        sqlBuilder.append(")");
+        return DBUtil.execute(conn, sqlBuilder.toString());
+    }
+
+    private static Object getFieldValueByName(String fieldName, Object obj) {
+        String firstLetter = fieldName.substring(0, 1).toUpperCase();
+        String getter = "get" + firstLetter + fieldName.substring(1);
+        try {
+            Method method = obj.getClass().getMethod(getter, new Class[]{});
+            Object value = method.invoke(obj, new Object[]{});
+            return value;
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static String getTableName(Class<?> t) {
+        String name = t.getName();
+        int index = name.lastIndexOf(".");
+        return name.substring(index + 1);
+    }
 
     private static <T> void setValue(T t, Field f, Object value) throws IllegalAccessException {
         // TODO 以数据库类型为准绳，还是以java数据类型为准绳？还是混合两种方式？
@@ -302,24 +324,6 @@ public class DBUtil {
             f.set(t, (java.sql.Timestamp) value);
         } else {
             System.out.println("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
-        }
-    }
-
-    public static void main(String[] args) {
-        try {
-            Connection conn = DBUtil.openConnection();
-//            List<Map<String, Object>> maps = DBUtil.queryMapList(conn, "select * from Person");
-            List<Person> person = DBUtil.queryBeanList(conn, "select idCard,name,sex from Person", Person.class);
-            System.out.println(person.get(0).toString());
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
