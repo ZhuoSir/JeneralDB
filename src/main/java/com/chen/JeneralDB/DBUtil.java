@@ -1,9 +1,7 @@
-package com.JeneralDB;
+package com.chen.JeneralDB;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -243,7 +241,7 @@ public class DBUtil {
         }
     }
 
-    public static int save(Connection conn, Object obj) throws SQLException {
+    public static int save(Connection conn, Object obj) throws SQLException, IllegalAccessException {
         if (obj == null)
             throw new NullPointerException();
         Class<?> t = obj.getClass();
@@ -262,30 +260,14 @@ public class DBUtil {
         sqlBuilder.append(" ) values (");
         columnNum = 0;
         for (Field field : fields) {
-            Object value = getFieldValueByName(field.getName(), obj);
-            sqlBuilder.append("'" +value.toString() + "'");
+            field.setAccessible(true);
+            Object value = field.get(obj);
+            sqlBuilder.append("'" + value.toString() + "'");
             if (columnNum++ < size - 1)
                 sqlBuilder.append(",");
         }
         sqlBuilder.append(")");
         return DBUtil.execute(conn, sqlBuilder.toString());
-    }
-
-    private static Object getFieldValueByName(String fieldName, Object obj) {
-        String firstLetter = fieldName.substring(0, 1).toUpperCase();
-        String getter = "get" + firstLetter + fieldName.substring(1);
-        try {
-            Method method = obj.getClass().getMethod(getter, new Class[]{});
-            Object value = method.invoke(obj, new Object[]{});
-            return value;
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     private static String getTableName(Class<?> t) {
