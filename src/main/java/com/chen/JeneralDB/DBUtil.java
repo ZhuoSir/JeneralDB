@@ -36,8 +36,16 @@ public class DBUtil {
         }
     }
 
+    public static List<Map<String, Object>> queryMapList(String sql)
+            throws SQLException, IOException, ClassNotFoundException {
+        return queryMapList(null, sql);
+    }
+
     public static List<Map<String, Object>> queryMapList(Connection connection, String sql)
-            throws SQLException {
+            throws SQLException, IOException, ClassNotFoundException {
+        if (null == connection) {
+            connection = openConnection();
+        }
         List<Map<String, Object>> lists = new ArrayList<Map<String, Object>>();
         Statement stmt = null;
         ResultSet rs = null;
@@ -50,12 +58,22 @@ public class DBUtil {
                 rs.close();
             if (null != stmt)
                 stmt.close();
+            if (null != connection)
+                connection.close();
         }
         return lists;
     }
 
+    public static List<Map<String, Object>> queryMapList(String sql, Object... params)
+            throws SQLException, IOException, ClassNotFoundException {
+        return queryMapList(null, sql, params);
+    }
+
     public static List<Map<String, Object>> queryMapList(Connection connection, String sql, Object... params)
-            throws SQLException {
+            throws SQLException, IOException, ClassNotFoundException {
+        if (null == connection) {
+            connection = openConnection();
+        }
         List<Map<String, Object>> lists = new ArrayList<Map<String, Object>>();
         PreparedStatement statement = null;
         ResultSet rs = null;
@@ -71,6 +89,8 @@ public class DBUtil {
                 rs.close();
             if (null != statement)
                 statement.close();
+            if (null != connection)
+                connection.close();
         }
         return lists;
     }
@@ -90,8 +110,16 @@ public class DBUtil {
         }
     }
 
+    public static <T> List<T> queryBeanList(String sql, Class<T> beanClass)
+            throws Exception {
+        return queryBeanList(null, sql, beanClass);
+    }
+
     public static <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass)
-            throws SQLException, IllegalAccessException, InstantiationException {
+            throws Exception {
+        if (null == con) {
+            con = openConnection();
+        }
         List<T> lists = new ArrayList<T>();
         Statement stmt = null;
         ResultSet resultSet = null;
@@ -120,12 +148,22 @@ public class DBUtil {
                 resultSet.close();
             if (null != stmt)
                 stmt.close();
+            if (null != con)
+                con.close();
         }
         return lists;
     }
 
+    public static <T> List<T> queryBeanList(String sql, Class<T> beanClass, Object... params)
+            throws Exception {
+        return queryBeanList(null, sql, beanClass, params);
+    }
+
     public static <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass, Object... params)
-            throws SQLException, InstantiationException, IllegalAccessException {
+            throws Exception {
+        if (null == con) {
+            con = openConnection();
+        }
         List<T> lists = new ArrayList<T>();
         PreparedStatement preStmt = null;
         ResultSet rs = null;
@@ -158,55 +196,65 @@ public class DBUtil {
                 rs.close();
             if (null != preStmt)
                 preStmt.close();
+            if (null != con)
+                con.close();
         }
         return lists;
     }
 
-    public static <T> T queryBean(Connection con, String sql, Class<T> beanClass) throws SQLException,
-            InstantiationException, IllegalAccessException {
-        List<T> lists = queryBeanList(con, sql, beanClass);
+    public static <T> T queryBean(String sql, Class<T> beanClass)
+            throws Exception {
+        List<T> lists = queryBeanList(null, sql, beanClass);
         if (lists.size() != 1)
             throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
         return lists.get(0);
     }
 
-    public static <T> T queryBean(Connection con, String sql, Class<T> beanClass, Object... params)
-            throws SQLException, InstantiationException, IllegalAccessException {
-        List<T> lists = queryBeanList(con, sql, beanClass, params);
+    public static <T> T queryBean(String sql, Class<T> beanClass, Object... params)
+            throws Exception {
+        List<T> lists = queryBeanList(null, sql, beanClass, params);
         if (lists.size() != 1)
             throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
         return lists.get(0);
     }
 
-    public static int execute(Connection con, String sql) throws SQLException {
+    public static int execute(String sql)
+            throws Exception {
         Statement statement = null;
         try {
-            statement = con.createStatement();
+            statement = openConnection().createStatement();
             return statement.executeUpdate(sql);
         } finally {
             if (null != statement)
                 statement.close();
+            closeConnection();
         }
     }
 
-    public static int execute(Connection con, String sql, Object... params) throws SQLException {
+    public static int execute(String sql, Object... params)
+            throws Exception {
         PreparedStatement preStmt = null;
         try {
-            preStmt = con.prepareStatement(sql);
+            preStmt = openConnection().prepareStatement(sql);
             for (int i = 0; i < params.length; i++)
                 preStmt.setObject(i + 1, params[i]);// 下标从1开始
             return preStmt.executeUpdate();
         } finally {
             if (null != preStmt)
                 preStmt.close();
+            closeConnection();
         }
     }
 
-    public static int[] executeAsBatch(Connection con, List<String> sqlList) throws SQLException {
-        return executeAsBatch(con, sqlList.toArray(new String[]{}));
+    public static int[] executeAsBatch(List<String> sqlList)
+            throws Exception {
+        return executeAsBatch(null, sqlList.toArray(new String[]{}));
     }
 
-    public static int[] executeAsBatch(Connection con, String[] sqlArray) throws SQLException {
+    public static int[] executeAsBatch(Connection con, String[] sqlArray) throws Exception {
+        if (null == con) {
+            con = openConnection();
+        }
         Statement stmt = null;
         try {
             stmt = con.createStatement();
@@ -218,13 +266,17 @@ public class DBUtil {
             if (null != stmt) {
                 stmt.close();
             }
+            if (null != con) {
+                con.close();
+            }
         }
     }
 
-    public static int[] executeAsBatch(Connection con, String sql, Object[][] params) throws SQLException {
+    public static int[] executeAsBatch(String sql, Object[][] params)
+            throws Exception {
         PreparedStatement preStmt = null;
         try {
-            preStmt = con.prepareStatement(sql);
+            preStmt = openConnection().prepareStatement(sql);
             for (int i = 0; i < params.length; i++) {
                 Object[] rowParams = params[i];
                 for (int k = 0; k < rowParams.length; k++) {
@@ -238,10 +290,12 @@ public class DBUtil {
             if (null != preStmt) {
                 preStmt.close();
             }
+            closeConnection();
         }
     }
 
-    public static int save(Connection conn, Object obj) throws SQLException, IllegalAccessException {
+    public static int save(Object obj)
+            throws Exception {
         if (obj == null)
             throw new NullPointerException();
         Class<?> t = obj.getClass();
@@ -267,7 +321,7 @@ public class DBUtil {
                 sqlBuilder.append(",");
         }
         sqlBuilder.append(")");
-        return DBUtil.execute(conn, sqlBuilder.toString());
+        return DBUtil.execute(sqlBuilder.toString());
     }
 
     private static String getTableName(Class<?> t) {
