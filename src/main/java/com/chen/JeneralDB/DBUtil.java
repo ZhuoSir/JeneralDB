@@ -37,12 +37,12 @@ public class DBUtil {
     }
 
     public static List<Map<String, Object>> queryMapList(String sql)
-            throws SQLException, IOException, ClassNotFoundException {
+            throws Exception {
         return queryMapList(null, sql);
     }
 
     public static List<Map<String, Object>> queryMapList(Connection connection, String sql)
-            throws SQLException, IOException, ClassNotFoundException {
+            throws Exception {
         if (null == connection) {
             connection = openConnection();
         }

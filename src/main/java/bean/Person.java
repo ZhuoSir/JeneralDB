@@ -33,6 +33,12 @@ public class Person {
         this.sex = sex;
     }
 
+    public Person(Integer idCard, String name, Integer sex) {
+        this.idCard = idCard;
+        this.name = name;
+        this.sex = sex;
+    }
+
     @Override
     public String toString() {
         return "name : " + name + " sex:" + sex + " idcard:" + idCard;
