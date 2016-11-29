@@ -331,7 +331,6 @@ public class DBUtil {
     }
 
     private static <T> void setValue(T t, Field f, Object value) throws IllegalAccessException {
-        // TODO 以数据库类型为准绳，还是以java数据类型为准绳？还是混合两种方式？
         if (null == value)
             return;
         String v = value.toString();
