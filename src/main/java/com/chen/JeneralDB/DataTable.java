@@ -43,6 +43,9 @@ public class DataTable {
     }
 
     public DataTable(List<?> list) throws Exception {
+        if (list == null || (list.size() == 0)) {
+            throw new NullPointerException("DataTable初始化list不能为Null");
+        }
         String[] colArr = null;
         {
             Class<?> ownerClass = list.get(0).getClass();
@@ -136,23 +139,4 @@ public class DataTable {
         return this.rows.get(index);
     }
 
-    public static void main(String[] args) {
-//        String[] columns = {"chen", "wang", "zhang"};
-//        Object[] rowData = {1, 2, "dudu"};
-//        DataTable dataTable = new DataTable(columns, rowData);
-        List<Person> personList = new ArrayList<Person>() {
-        };
-        personList.add(new Person(1, "chen", 2));
-        personList.add(new Person(2, "wang", 2));
-        personList.add(new Person(3, "zhang", 2));
-        try {
-            DataTable dataTable = new DataTable(personList);
-//            DataTable dataTable = new DataTable(Person.class);
-            dataTable.addRow(new Object[]{1, "li", 2});
-            dataTable.addColumn("address");
-            System.out.println("sucess...");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

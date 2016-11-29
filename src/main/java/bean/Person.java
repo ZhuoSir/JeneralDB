@@ -33,6 +33,9 @@ public class Person {
         this.sex = sex;
     }
 
+    public Person() {
+    }
+
     public Person(Integer idCard, String name, Integer sex) {
         this.idCard = idCard;
         this.name = name;
