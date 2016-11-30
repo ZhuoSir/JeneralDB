@@ -12,19 +12,19 @@ import java.util.List;
  */
 public class DataTable {
 
-    /**　
-     * 行记录
-     * */
-    private ArrayList<Object[]> rows = null;
-
     /**
      * 列记录
-     * */
+     */
     private ArrayList<String> columns = null;
 
     /**
+     * 行记录
+     */
+    private ArrayList<Object[]> rows = null;
+
+    /**
      * 默认初始化方法，列记录默认添加"Columns1"；
-     * */
+     */
     public DataTable() {
         columns = new ArrayList<String>(1);
         columns.add("Columns1");
@@ -35,7 +35,7 @@ public class DataTable {
      * 列数构造器，构造指定列数的DataTable；
      *
      * @param columnsCount 指定数量
-     * */
+     */
     public DataTable(int columnsCount) {
         this.columns = new ArrayList<String>(columnsCount);
         for (int i = 0; i < columnsCount; i++) {
@@ -48,8 +48,8 @@ public class DataTable {
      * 指定列名，以及对象矩阵构造；
      *
      * @param columnNames 列名数组；
-     * @param rowDatas 对象矩阵
-     * */
+     * @param rowDatas    对象矩阵
+     */
     public DataTable(String[] columnNames, Object[] rowDatas) throws Exception {
         if (columnNames != null && columnNames.length > 0) {
             if (columnNames.length != rowDatas.length) {
@@ -68,7 +68,7 @@ public class DataTable {
      * 指定集合构造；
      *
      * @param list 数据集合
-     * */
+     */
     public DataTable(List<?> list) throws Exception {
         if (list == null || (list.size() == 0)) {
             throw new Exception("DataTable初始化list不能为Null或者size为0");
@@ -113,7 +113,7 @@ public class DataTable {
      * 对象构造，将对象中的属性名做为列名，属性值为数据
      *
      * @param t 类对象泛型
-     * */
+     */
     public DataTable(Class<?> t) {
         String[] colArr = null;
         {
@@ -137,7 +137,7 @@ public class DataTable {
      * 加入一行数据，对象数组方式；
      *
      * @param rowObjs 数据数组
-     * */
+     */
     public void addSingleRow(Object[] rowObjs) throws Exception {
         if (rowObjs == null || rowObjs.length == 0) {
             throw new Exception("DataTable初始化对象数组不能为Null或者length为0");
@@ -152,7 +152,7 @@ public class DataTable {
      * 加入一行数据，动态数组方式；
      *
      * @param rowObjs 动态数组
-     * */
+     */
     public void addSingleRow(ArrayList<Object> rowObjs) throws Exception {
         if (rowObjs != null && rowObjs.size() == 0) {
             throw new Exception("加入的行对象不能为空或者size为0");
@@ -171,7 +171,7 @@ public class DataTable {
      * 加入多行数据；
      *
      * @param rows 内容动态数组
-     * */
+     */
     public void addAll(ArrayList<Object[]> rows) {
         this.rows.addAll(rows);
     }

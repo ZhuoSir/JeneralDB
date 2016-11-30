@@ -14,7 +14,7 @@ public class DBUtil {
     private static Connection conn = null;
 
     public static Connection openConnection()
-            throws SQLException, IOException, ClassNotFoundException {
+            throws Exception {
         if (null == conn || conn.isClosed()) {
             Properties p = new Properties();
             p.load(DBUtil.class.getResourceAsStream("/JeneralDB-config.properties"));
@@ -218,6 +218,16 @@ public class DBUtil {
         return lists.get(0);
     }
 
+    public static <T> DataTable queryDataTable(String sql, Class<T> beanClass)
+            throws Exception {
+        List<T> list = queryBeanList(sql,beanClass);
+        DataTable dataTable = null;
+        if (list != null && list.size() != 0) {
+            dataTable = new DataTable(list);
+        }
+        return dataTable;
+    }
+
     public static int execute(String sql)
             throws Exception {
         Statement statement = null;
@@ -330,7 +340,8 @@ public class DBUtil {
         return name.substring(index + 1);
     }
 
-    private static <T> void setValue(T t, Field f, Object value) throws IllegalAccessException {
+    private static <T> void setValue(T t, Field f, Object value)
+            throws Exception {
         if (null == value)
             return;
         String v = value.toString();
@@ -358,7 +369,7 @@ public class DBUtil {
         } else if ("java.sql.Timestamp".equals(n)) {
             f.set(t, (java.sql.Timestamp) value);
         } else {
-            System.out.println("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
+            throw new Exception("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
         }
     }
 }
