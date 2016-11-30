@@ -4,6 +4,7 @@ import bean.Person;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -31,8 +32,11 @@ public class DataTable {
         rows = new ArrayList<Object[]>();
     }
 
-    public DataTable(String[] columnNames, Object[] rowDatas) {
+    public DataTable(String[] columnNames, Object[] rowDatas) throws Exception {
         if (columnNames != null && columnNames.length > 0) {
+            if (columnNames.length != rowDatas.length) {
+                throw new Exception("行记录与列记录长度必须保持一致");
+            }
             this.columns = new ArrayList<String>(columnNames.length);
             for (int i = 0; i < columnNames.length; i++) {
                 this.columns.add(columnNames[i]);
@@ -44,7 +48,7 @@ public class DataTable {
 
     public DataTable(List<?> list) throws Exception {
         if (list == null || (list.size() == 0)) {
-            throw new NullPointerException("DataTable初始化list不能为Null");
+            throw new Exception("DataTable初始化list不能为Null或者size为0");
         }
         String[] colArr = null;
         {
@@ -98,14 +102,35 @@ public class DataTable {
                 this.columns.add(colArr[c]);
             }
         }
-        this.rows = new ArrayList<Object[]>(1);
+        this.rows = new ArrayList<Object[]>(0);
     }
 
-    public void addRow(Object[] rowObjs) throws Exception {
+    public void addSingleRow(Object[] rowObjs) throws Exception {
+        if (rowObjs == null || rowObjs.length == 0) {
+            throw new Exception("DataTable初始化对象数组不能为Null或者length为0");
+        }
         if (rowObjs.length != this.rows.get(0).length) {
             throw new Exception("新插入的对象数组必须等于数据表DataTable的rows的长度");
         }
         this.rows.add(rowObjs);
+    }
+
+    public void addSingleRow(ArrayList<Object> rowObjs) throws Exception {
+        if (rowObjs != null && rowObjs.size() == 0) {
+            throw new Exception("加入的行对象不能为空或者size为0");
+        }
+        if (rowObjs.size() != this.rows.get(0).length) {
+            throw new Exception("新插入的对象数组必须等于数据表DataTable的rows的长度");
+        }
+        Object[] addedRow = new Object[rowObjs.size()];
+        for (int i = 0, length = addedRow.length; i < length; i++) {
+            addedRow[i] = rowObjs.get(i);
+        }
+        this.rows.add(addedRow);
+    }
+
+    public void addAll(ArrayList<Object[]> rows) {
+        this.rows.addAll(rows);
     }
 
     public void addColumn(String columnName) {
@@ -131,12 +156,98 @@ public class DataTable {
         }
     }
 
-    public int getRowLenth() {
+    public boolean equals(DataTable dataTable) {
+        if (dataTable == null
+                || this.columns.size() != dataTable.getColumnsSize()
+                || this.rows.size() != dataTable.getRowSize()) {
+            return false;
+        }
+        if (!this.columns.equals(dataTable.getColumns())) {
+            return false;
+        }
+        boolean finalResult = true;
+        {
+            for (int i = 0; i < this.rows.size(); i++) {
+                Object[] theRow = rows.get(i);
+                Object[] otherRow = dataTable.getRowAtIndex(i);
+                if (theRow.length != otherRow.length) {
+                    finalResult = false;
+                    break;
+                }
+                for (int j = 0; j < theRow.length; j++) {
+                    if (!theRow[j].equals(otherRow[j])) {
+                        finalResult = false;
+                        break;
+                    }
+                }
+                if (!finalResult) {
+                    break;
+                }
+            }
+        }
+        return finalResult;
+    }
+
+    public DataTable clone() throws CloneNotSupportedException {
+        DataTable cloneObject = new DataTable();
+        cloneObject.setColumns(new ArrayList<String>());
+        cloneObject.setRows(new ArrayList<Object[]>());
+        Iterator iterator = this.getColumns().iterator();
+        while (iterator.hasNext()) {
+            cloneObject.getColumns().add((String) iterator.next());
+        }
+        cloneObject.addAll(this.getRows());
+        return cloneObject;
+    }
+
+    public int getRowSize() {
         return this.rows.size();
+    }
+
+    public int getColumnsSize() {
+        return this.columns.size();
     }
 
     public Object[] getRowAtIndex(int index) {
         return this.rows.get(index);
     }
 
+    public ArrayList<String> getColumns() {
+        return this.columns;
+    }
+
+    public ArrayList<Object[]> getRows() {
+        return this.rows;
+    }
+
+    public void setColumns(ArrayList<String> columns) {
+        this.columns = columns;
+    }
+
+    public void setRows(ArrayList<Object[]> rows) {
+        this.rows = rows;
+    }
+
+    public static void main(String[] args) {
+        Person person1 = new Person(1, "chen", 2);
+        Person person2 = new Person(2, "wang", 2);
+        Person person3 = new Person(3, "zhang", 2);
+        Person person4 = new Person(4, "li", 2);
+        List<Person> personArr = new ArrayList<Person>();
+        personArr.add(person1);
+        personArr.add(person2);
+        personArr.add(person3);
+//        List<Person> persons = new ArrayList<Person>();
+//        persons.add(person1);
+//        persons.add(person2);
+//        persons.add(person3);
+        try {
+            DataTable dataTable1 = new DataTable(personArr);
+            DataTable dataTable2 = dataTable1.clone();
+            System.out.println(dataTable1.equals(dataTable2));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }
