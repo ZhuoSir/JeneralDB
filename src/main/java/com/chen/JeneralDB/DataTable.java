@@ -3,14 +3,18 @@ package com.chen.JeneralDB;
 import bean.Person;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by sunny on 2016/11/29.
  */
 public class DataTable {
+
+    /**
+     * 游标
+     */
+    private int cursor;
 
     /**
      * 列记录
@@ -199,6 +203,10 @@ public class DataTable {
         }
     }
 
+    public void removeRowAtIndex(int index) {
+        this.rows.remove(index);
+    }
+
     public boolean equals(DataTable dataTable) {
         if (dataTable == null
                 || this.columns.size() != dataTable.getColumnsSize()
@@ -243,6 +251,10 @@ public class DataTable {
         return cloneObject;
     }
 
+    public String toString() {
+        return null;
+    }
+
     public int getRowSize() {
         return this.rows.size();
     }
@@ -271,6 +283,42 @@ public class DataTable {
         this.rows = rows;
     }
 
+    public Iterator<Object[]> iterator() {
+        return new Iter();
+    }
+
+    public class Iter implements Iterator<Object[]> {
+
+        private int cursor;
+
+        @Override
+        public boolean hasNext() {
+            return cursor != getRowSize();
+        }
+
+        @Override
+        public Object[] next() {
+            int i = cursor;
+            if (i >= getRowSize()) {
+                throw new NoSuchElementException();
+            } else {
+                cursor++;
+                return getRowAtIndex(i);
+            }
+        }
+
+        @Override
+        public void remove() {
+            int i = cursor;
+            if (i >= getRowSize()) {
+                throw new NoSuchElementException();
+            } else {
+                removeRowAtIndex(i);
+            }
+        }
+    }
+
+
     public static void main(String[] args) {
         Person person1 = new Person(1, "chen", 2);
         Person person2 = new Person(2, "wang", 2);
@@ -280,6 +328,7 @@ public class DataTable {
         personArr.add(person1);
         personArr.add(person2);
         personArr.add(person3);
+        personArr.add(person4);
 //        List<Person> persons = new ArrayList<Person>();
 //        persons.add(person1);
 //        persons.add(person2);
@@ -287,10 +336,14 @@ public class DataTable {
         try {
             DataTable dataTable1 = new DataTable(personArr);
             DataTable dataTable2 = dataTable1.clone();
+            Iterator iterator = dataTable2.iterator();
+            while (iterator.hasNext()) {
+                iterator.remove();
+            }
             System.out.println(dataTable1.equals(dataTable2));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

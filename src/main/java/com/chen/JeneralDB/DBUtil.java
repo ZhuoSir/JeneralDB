@@ -1,6 +1,5 @@
 package com.chen.JeneralDB;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
@@ -220,7 +219,7 @@ public class DBUtil {
 
     public static <T> DataTable queryDataTable(String sql, Class<T> beanClass)
             throws Exception {
-        List<T> list = queryBeanList(sql,beanClass);
+        List<T> list = queryBeanList(sql, beanClass);
         DataTable dataTable = null;
         if (list != null && list.size() != 0) {
             dataTable = new DataTable(list);
@@ -304,34 +303,31 @@ public class DBUtil {
         }
     }
 
-    public static int save(Object obj)
-            throws Exception {
-        if (obj == null)
-            throw new NullPointerException();
+    public static int save(Object obj) throws Exception {
+        if (obj == null) {
+            throw new NullPointerException("保存对象不能为Null");
+        }
+        StringBuilder columns = new StringBuilder(" insert into ");
+        StringBuilder values = new StringBuilder(" ) values (");
         Class<?> t = obj.getClass();
         String tableName = getTableName(t);
         Field[] fields = t.getDeclaredFields();
-        StringBuilder sqlBuilder = new StringBuilder(" insert into ");
-        sqlBuilder.append(tableName);
-        sqlBuilder.append("( ");
+        columns.append(tableName + " ( ");
         int size = fields.length, columnNum = 0;
         for (Field field : fields) {
-            String columnName = field.getName();
-            sqlBuilder.append(columnName);
-            if (columnNum++ < size - 1)
-                sqlBuilder.append(",");
-        }
-        sqlBuilder.append(" ) values (");
-        columnNum = 0;
-        for (Field field : fields) {
             field.setAccessible(true);
+            String columnName = field.getName();
             Object value = field.get(obj);
-            sqlBuilder.append("'" + value.toString() + "'");
-            if (columnNum++ < size - 1)
-                sqlBuilder.append(",");
+            columns.append(columnName);
+            values.append("'" + value.toString() + "'");
+            if (columnNum++ < size - 1) {
+                columns.append(" , ");
+                values.append(" , ");
+            }
         }
-        sqlBuilder.append(")");
-        return DBUtil.execute(sqlBuilder.toString());
+        values.append(" ) ");
+        columns.append(values);
+        return DBUtil.execute(columns.toString());
     }
 
     private static String getTableName(Class<?> t) {
