@@ -210,7 +210,7 @@ public class DataTable {
     public boolean equals(DataTable dataTable) {
         if (dataTable == null
                 || this.columns.size() != dataTable.getColumnsSize()
-                || this.rows.size() != dataTable.getRowSize()) {
+                    || this.rows.size() != dataTable.getRowSize()) {
             return false;
         }
         if (!this.columns.equals(dataTable.getColumns())) {

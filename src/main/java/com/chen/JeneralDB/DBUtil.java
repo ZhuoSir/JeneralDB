@@ -310,7 +310,7 @@ public class DBUtil {
         StringBuilder columns = new StringBuilder(" insert into ");
         StringBuilder values = new StringBuilder(" ) values (");
         Class<?> t = obj.getClass();
-        String tableName = getTableName(t);
+        String tableName = t.getSimpleName();
         Field[] fields = t.getDeclaredFields();
         columns.append(tableName + " ( ");
         int size = fields.length, columnNum = 0;
@@ -328,12 +328,6 @@ public class DBUtil {
         values.append(" ) ");
         columns.append(values);
         return DBUtil.execute(columns.toString());
-    }
-
-    private static String getTableName(Class<?> t) {
-        String name = t.getName();
-        int index = name.lastIndexOf(".");
-        return name.substring(index + 1);
     }
 
     private static <T> void setValue(T t, Field f, Object value)
