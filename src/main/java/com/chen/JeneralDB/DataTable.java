@@ -1,7 +1,5 @@
 package com.chen.JeneralDB;
 
-import bean.Person;
-
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -9,11 +7,6 @@ import java.util.*;
  * Created by sunny on 2016/11/29.
  */
 public class DataTable {
-
-    /**
-     * 游标
-     */
-    private int cursor;
 
     /**
      * 列记录
@@ -134,6 +127,29 @@ public class DataTable {
             }
         }
         this.rows = new ArrayList<>(0);
+    }
+
+    public DataTable(Object obj) throws IllegalAccessException {
+        String[] colArr = null;
+        Object[] rowArr = null;
+        Class<?> ownerClass = obj.getClass();
+        Field[] fields = ownerClass.getDeclaredFields();
+        {
+            colArr = new String[fields.length];
+            for (int i = 0; i < fields.length; i++) {
+                colArr[i] = fields[i].getName();
+            }
+        }
+        this.columns = new ArrayList<>(colArr.length);
+        this.columns.addAll(Arrays.asList(colArr));
+        this.rows = new ArrayList<>(1);
+        rowArr = new Object[colArr.length];
+        for (int j = 0; j < fields.length; j++) {
+            fields[j].setAccessible(true);
+            Object value = fields[j].get(obj);
+            rowArr[j] = value;
+        }
+        this.rows.add(rowArr);
     }
 
     /**
