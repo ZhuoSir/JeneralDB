@@ -179,6 +179,11 @@ public class DataTable {
         this.rows.addAll(rows);
     }
 
+    /**
+     * 加入一列
+     *
+     * @param columnName 列名
+     */
     public void addColumn(String columnName) {
         this.columns.add(columnName);
         int columnSize = this.columns.size();
