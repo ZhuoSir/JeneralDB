@@ -4,7 +4,6 @@ import bean.Person;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Created by sunny on 2016/11/29.
@@ -30,9 +29,9 @@ public class DataTable {
      * 默认初始化方法，列记录默认添加"Columns1"；
      */
     public DataTable() {
-        columns = new ArrayList<String>(1);
+        columns = new ArrayList<>(1);
         columns.add("Columns1");
-        rows = new ArrayList<Object[]>();
+        rows = new ArrayList<>();
     }
 
     /**
@@ -41,11 +40,11 @@ public class DataTable {
      * @param columnsCount 指定数量
      */
     public DataTable(int columnsCount) {
-        this.columns = new ArrayList<String>(columnsCount);
+        this.columns = new ArrayList<>(columnsCount);
         for (int i = 0; i < columnsCount; i++) {
             this.columns.add("Columns" + i);
         }
-        rows = new ArrayList<Object[]>();
+        rows = new ArrayList<>();
     }
 
     /**
@@ -59,12 +58,12 @@ public class DataTable {
             if (columnNames.length != rowDatas.length) {
                 throw new Exception("行记录与列记录长度必须保持一致");
             }
-            this.columns = new ArrayList<String>(columnNames.length);
+            this.columns = new ArrayList<>(columnNames.length);
             for (int i = 0; i < columnNames.length; i++) {
                 this.columns.add(columnNames[i]);
             }
         }
-        this.rows = new ArrayList<Object[]>();
+        this.rows = new ArrayList<>();
         this.rows.add(rowDatas);
     }
 
@@ -98,14 +97,14 @@ public class DataTable {
             }
         }
 
-        this.columns = new ArrayList<String>(colArr.length);
+        this.columns = new ArrayList<>(colArr.length);
         if (colArr != null && colArr.length > 0) {
             for (int c = 0; c < colArr.length; c++) {
                 this.columns.add(colArr[c]);
             }
         }
 
-        this.rows = new ArrayList<Object[]>(dataArr.length);
+        this.rows = new ArrayList<>(dataArr.length);
         if (dataArr != null && dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
@@ -128,13 +127,13 @@ public class DataTable {
                 colArr[i] = fields[i].getName();
             }
         }
-        this.columns = new ArrayList<String>(colArr.length);
+        this.columns = new ArrayList<>(colArr.length);
         if (colArr != null && colArr.length > 0) {
             for (int c = 0; c < colArr.length; c++) {
                 this.columns.add(colArr[c]);
             }
         }
-        this.rows = new ArrayList<Object[]>(0);
+        this.rows = new ArrayList<>(0);
     }
 
     /**
@@ -195,7 +194,7 @@ public class DataTable {
                 }
             }
         }
-        this.rows = new ArrayList<Object[]>(dataArr.length);
+        this.rows = new ArrayList<>(dataArr.length);
         if (dataArr != null && dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
@@ -203,8 +202,30 @@ public class DataTable {
         }
     }
 
-    public void removeRowAtIndex(int index) {
-        this.rows.remove(index);
+    /**
+     * 删除索引行数
+     * */
+    public Object[] removeRowAtIndex(int index) {
+        return this.rows.remove(index);
+    }
+
+    /**
+     * 删除索引行数，
+     *
+     * @param Start 开始下标
+     * @param End 结束下标
+     * */
+    public List<Object[]> removeRowFromStartToEnd(int Start, int End) {
+        List<Object[]> theRows = new ArrayList<>();
+        int rowSize = this.getRowSize();
+        if (Start >= rowSize
+                || End >= rowSize) {
+            throw new ArrayIndexOutOfBoundsException("start,end不能超过row的size");
+        }
+        for (int i = Start, j = Start; i < End; i++) {
+            theRows.add(this.rows.remove(j));
+        }
+        return theRows;
     }
 
     public boolean equals(DataTable dataTable) {
@@ -241,8 +262,8 @@ public class DataTable {
 
     public DataTable clone() throws CloneNotSupportedException {
         DataTable cloneObject = new DataTable();
-        cloneObject.setColumns(new ArrayList<String>());
-        cloneObject.setRows(new ArrayList<Object[]>());
+        cloneObject.setColumns(new ArrayList<>());
+        cloneObject.setRows(new ArrayList<>());
         Iterator iterator = this.getColumns().iterator();
         while (iterator.hasNext()) {
             cloneObject.getColumns().add((String) iterator.next());
@@ -315,35 +336,6 @@ public class DataTable {
             } else {
                 removeRowAtIndex(i);
             }
-        }
-    }
-
-
-    public static void main(String[] args) {
-        Person person1 = new Person(1, "chen", 2);
-        Person person2 = new Person(2, "wang", 2);
-        Person person3 = new Person(3, "zhang", 2);
-        Person person4 = new Person(4, "li", 2);
-        List<Person> personArr = new ArrayList<Person>();
-        personArr.add(person1);
-        personArr.add(person2);
-        personArr.add(person3);
-        personArr.add(person4);
-//        List<Person> persons = new ArrayList<Person>();
-//        persons.add(person1);
-//        persons.add(person2);
-//        persons.add(person3);
-        try {
-            DataTable dataTable1 = new DataTable(personArr);
-            DataTable dataTable2 = dataTable1.clone();
-            Iterator iterator = dataTable2.iterator();
-            while (iterator.hasNext()) {
-                iterator.remove();
-            }
-            System.out.println(dataTable1.equals(dataTable2));
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
