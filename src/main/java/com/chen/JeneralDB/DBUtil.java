@@ -330,7 +330,7 @@ public class DBUtil {
         return DBUtil.execute(columns.toString());
     }
 
-    private static <T> void setValue(T t, Field f, Object value)
+    protected static <T> void setValue(T t, Field f, Object value)
             throws Exception {
         if (null == value)
             return;

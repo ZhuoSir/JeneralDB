@@ -1,5 +1,6 @@
 package com.chen.JeneralDB;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -152,6 +153,113 @@ public class DataTable {
         this.rows.add(rowArr);
     }
 
+    public boolean equals(DataTable dataTable) {
+        if (dataTable == null
+                || this.columns.size() != dataTable.getColumnsSize()
+                || this.rows.size() != dataTable.getRowSize()) {
+            return false;
+        }
+        if (!this.columns.equals(dataTable.getColumns())) {
+            return false;
+        }
+        boolean finalResult = true;
+        {
+            for (int i = 0; i < this.rows.size(); i++) {
+                Object[] theRow = rows.get(i);
+                Object[] otherRow = dataTable.getRowAtIndex(i);
+                if (theRow.length != otherRow.length) {
+                    finalResult = false;
+                    break;
+                }
+                for (int j = 0; j < theRow.length; j++) {
+                    if (!theRow[j].equals(otherRow[j])) {
+                        finalResult = false;
+                        break;
+                    }
+                }
+                if (!finalResult) {
+                    break;
+                }
+            }
+        }
+        return finalResult;
+    }
+
+    public DataTable clone() throws CloneNotSupportedException {
+        DataTable cloneObject = new DataTable();
+        cloneObject.setColumns(new ArrayList<>());
+        cloneObject.setRows(new ArrayList<>());
+        Iterator iterator = this.getColumns().iterator();
+        while (iterator.hasNext()) {
+            cloneObject.getColumns().add((String) iterator.next());
+        }
+        cloneObject.addAll(this.getRows());
+        return cloneObject;
+    }
+
+    public String toString() {
+        return null;
+    }
+
+    public int getRowSize() {
+        return this.rows.size();
+    }
+
+    public int getColumnsSize() {
+        return this.columns.size();
+    }
+
+    public Object[] getRowAtIndex(int index) {
+        return this.rows.get(index);
+    }
+
+    public ArrayList<String> getColumns() {
+        return this.columns;
+    }
+
+    public ArrayList<Object[]> getRows() {
+        return this.rows;
+    }
+
+    public void setColumns(ArrayList<String> columns) {
+        this.columns = columns;
+    }
+
+    public void setRows(ArrayList<Object[]> rows) {
+        this.rows = rows;
+    }
+
+    public class Iter implements Iterator<Object[]> {
+
+        private int cursor;
+
+        @Override
+        public boolean hasNext() {
+            return cursor != getRowSize();
+        }
+
+        @Override
+        public Object[] next() {
+            int i = cursor;
+            if (i >= getRowSize()) {
+                throw new NoSuchElementException();
+            } else {
+                cursor++;
+                return getRowAtIndex(i);
+            }
+        }
+
+        @Override
+        public void remove() {
+            int i = cursor;
+            if (i >= getRowSize()) {
+                throw new NoSuchElementException();
+            } else {
+                removeRowAtIndex(i);
+            }
+        }
+    }
+
     /**
      * 加入一行数据，对象数组方式；
      *
@@ -225,7 +333,7 @@ public class DataTable {
 
     /**
      * 删除索引行数
-     * */
+     */
     public Object[] removeRowAtIndex(int index) {
         return this.rows.remove(index);
     }
@@ -234,8 +342,8 @@ public class DataTable {
      * 删除索引行数，
      *
      * @param Start 开始下标
-     * @param End 结束下标
-     * */
+     * @param End   结束下标
+     */
     public List<Object[]> removeRowFromStartToEnd(int Start, int End) {
         List<Object[]> theRows = new ArrayList<>();
         int rowSize = this.getRowSize();
@@ -249,114 +357,24 @@ public class DataTable {
         return theRows;
     }
 
-    public boolean equals(DataTable dataTable) {
-        if (dataTable == null
-                || this.columns.size() != dataTable.getColumnsSize()
-                    || this.rows.size() != dataTable.getRowSize()) {
-            return false;
-        }
-        if (!this.columns.equals(dataTable.getColumns())) {
-            return false;
-        }
-        boolean finalResult = true;
-        {
-            for (int i = 0; i < this.rows.size(); i++) {
-                Object[] theRow = rows.get(i);
-                Object[] otherRow = dataTable.getRowAtIndex(i);
-                if (theRow.length != otherRow.length) {
-                    finalResult = false;
-                    break;
-                }
-                for (int j = 0; j < theRow.length; j++) {
-                    if (!theRow[j].equals(otherRow[j])) {
-                        finalResult = false;
-                        break;
-                    }
-                }
-                if (!finalResult) {
-                    break;
-                }
-            }
-        }
-        return finalResult;
-    }
-
-    public DataTable clone() throws CloneNotSupportedException {
-        DataTable cloneObject = new DataTable();
-        cloneObject.setColumns(new ArrayList<>());
-        cloneObject.setRows(new ArrayList<>());
-        Iterator iterator = this.getColumns().iterator();
-        while (iterator.hasNext()) {
-            cloneObject.getColumns().add((String) iterator.next());
-        }
-        cloneObject.addAll(this.getRows());
-        return cloneObject;
-    }
-
-    public String toString() {
-        return null;
-    }
-
-    public int getRowSize() {
-        return this.rows.size();
-    }
-
-    public int getColumnsSize() {
-        return this.columns.size();
-    }
-
-    public Object[] getRowAtIndex(int index) {
-        return this.rows.get(index);
-    }
-
-    public ArrayList<String> getColumns() {
-        return this.columns;
-    }
-
-    public ArrayList<Object[]> getRows() {
-        return this.rows;
-    }
-
-    public void setColumns(ArrayList<String> columns) {
-        this.columns = columns;
-    }
-
-    public void setRows(ArrayList<Object[]> rows) {
-        this.rows = rows;
-    }
+//    public <T> List<T> toBeanList(Class<T> beanClass)
+//            throws Exception {
+//        int rowSize = this.getRowSize();
+//        List<T> beanList = new ArrayList<>(rowSize);
+//        for (int i = 0; i < rowSize; i++) {
+//            T t = beanClass.newInstance();
+//            Field[] fields = t.getClass().getDeclaredFields();
+//            for (int j = 0; j < fields.length; j++) {
+//                fields[j].setAccessible(true);
+//                Object value = fields[j].get(beanClass);
+//                DBUtil.setValue(t, fields[j], value);
+//            }
+//            beanList.add(t);
+//        }
+//        return beanList;
+//    }
 
     public Iterator<Object[]> iterator() {
         return new Iter();
-    }
-
-    public class Iter implements Iterator<Object[]> {
-
-        private int cursor;
-
-        @Override
-        public boolean hasNext() {
-            return cursor != getRowSize();
-        }
-
-        @Override
-        public Object[] next() {
-            int i = cursor;
-            if (i >= getRowSize()) {
-                throw new NoSuchElementException();
-            } else {
-                cursor++;
-                return getRowAtIndex(i);
-            }
-        }
-
-        @Override
-        public void remove() {
-            int i = cursor;
-            if (i >= getRowSize()) {
-                throw new NoSuchElementException();
-            } else {
-                removeRowAtIndex(i);
-            }
-        }
     }
 }
