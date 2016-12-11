@@ -1,6 +1,5 @@
 package com.chen.JeneralDB;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -87,7 +86,8 @@ public class DataTable {
             for (int j = 0; j < fields.length; j++) {
                 Field field = fields[j];
                 field.setAccessible(true);
-                dataArr[i][j] = field.get(obj);
+                Object value = field.get(obj);
+                dataArr[i][j] = value != null ? value : null;
             }
         }
 
@@ -261,6 +261,13 @@ public class DataTable {
     }
 
     /**
+     * 获取迭代器
+     */
+    public Iterator<Object[]> iterator() {
+        return new Iter();
+    }
+
+    /**
      * 加入一行数据，对象数组方式；
      *
      * @param rowObjs 数据数组
@@ -357,24 +364,98 @@ public class DataTable {
         return theRows;
     }
 
-//    public <T> List<T> toBeanList(Class<T> beanClass)
-//            throws Exception {
-//        int rowSize = this.getRowSize();
-//        List<T> beanList = new ArrayList<>(rowSize);
-//        for (int i = 0; i < rowSize; i++) {
-//            T t = beanClass.newInstance();
-//            Field[] fields = t.getClass().getDeclaredFields();
-//            for (int j = 0; j < fields.length; j++) {
-//                fields[j].setAccessible(true);
-//                Object value = fields[j].get(beanClass);
-//                DBUtil.setValue(t, fields[j], value);
-//            }
-//            beanList.add(t);
-//        }
-//        return beanList;
-//    }
+    /**
+     * 将DataTable转成BeanList
+     *
+     * @param beanClass 对象类
+     */
+    public <T> List<T> toBeanList(Class<T> beanClass)
+            throws Exception {
+        int rowSize = this.getRowSize();
+        List<T> beanList = new ArrayList<>(rowSize);
+        for (int i = 0; i < rowSize; i++) {
+            Object[] values = this.getRowAtIndex(i);
+            T t = beanClass.newInstance();
+            Field[] fields = t.getClass().getDeclaredFields();
+            for (int j = 0; j < fields.length; j++) {
+                fields[j].setAccessible(true);
+//                Object value = values[j];
+                String rowName = fields[j].getName();
+                Object value = null;
+                try {
+                    value = getObjectByColumnNameInRow(rowName, i);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                    System.err.println("DataTable中没有" + rowName + "列");
+                    continue;
+                }
+                fields[j].set(t, value);
+            }
+            beanList.add(t);
+        }
+        return beanList;
+    }
 
-    public Iterator<Object[]> iterator() {
-        return new Iter();
+    /**
+     * 根据列名获取一系列对象
+     *
+     * @param rowName 列名
+     */
+    public Object[] getObjectsByColumnName(String rowName) {
+        int size = this.getRowSize();
+        Object[] values = new Object[size];
+        for (int i = 0; i < size; i++) {
+            Object value;
+            try {
+                value = getObjectByColumnNameInRow(rowName, i);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.err.println("dataTable中没有" + rowName + "列");
+                e.printStackTrace();
+                break;
+            }
+            values[i] = value;
+        }
+        return values;
+    }
+
+    /**
+     * 根据列名获取某一行中的某一列的对象
+     *
+     * @param rowName 列名
+     * @param index   行数
+     */
+    public Object getObjectByColumnNameInRow(String rowName, int index) {
+        Object value = null;
+        Object[] valuesOfRowAtIndex = this.getRowAtIndex(index);
+        int indexOfColumnName = getIndexOfColumnNameInColumn(rowName);
+        return valuesOfRowAtIndex[indexOfColumnName];
+    }
+
+    /**
+     * 获取列名的序号
+     *
+     * @param rowName 列名
+     */
+    public int getIndexOfColumnNameInColumn(String rowName) {
+        return this.columns.indexOf(rowName);
+    }
+
+    /**
+     * 根据坐标获取对象
+     *
+     * @param x X轴值
+     * @param y Y轴值
+     */
+    public Object getObjectAtCoordinate(int x, int y) {
+        if ((x + 1) > getColumnsSize()) {
+            System.err.println("X值超过了dataTable中列名的size");
+            return null;
+        }
+        if ((y + 1) > getRowSize()) {
+            System.err.println("Y值超过了dataTable中数据的size");
+            return null;
+        }
+        Object[] rows = getRowAtIndex(y);
+        return rows[x];
     }
 }
