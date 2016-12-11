@@ -374,12 +374,10 @@ public class DataTable {
         int rowSize = this.getRowSize();
         List<T> beanList = new ArrayList<>(rowSize);
         for (int i = 0; i < rowSize; i++) {
-            Object[] values = this.getRowAtIndex(i);
             T t = beanClass.newInstance();
             Field[] fields = t.getClass().getDeclaredFields();
             for (int j = 0; j < fields.length; j++) {
                 fields[j].setAccessible(true);
-//                Object value = values[j];
                 String rowName = fields[j].getName();
                 Object value = null;
                 try {
