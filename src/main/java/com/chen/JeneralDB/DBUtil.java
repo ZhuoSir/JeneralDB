@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.Date;
 
 /**
+ *
  * Created by sunny-chen on 16/11/27.
  */
 public class DBUtil {
@@ -19,7 +20,7 @@ public class DBUtil {
     }
 
     public static DBUtil getInstance() {
-        if (dbUtil == null) {
+        if (null == dbUtil) {
             dbUtil = new DBUtil();
         }
         return dbUtil;
@@ -28,11 +29,11 @@ public class DBUtil {
     public Connection openConnection()
             throws Exception {
         if (null == conn || conn.isClosed()) {
-            Properties p = new Properties();
-            p.load(DBUtil.class.getResourceAsStream("/JeneralDB-config.properties"));
-            Class.forName(p.getProperty("db_driver"));
-            conn = DriverManager.getConnection(p.getProperty("db_url"), p.getProperty("db_username"),
-                    p.getProperty("db_password"));
+            Properties properties = new Properties();
+            properties.load(DBUtil.class.getResourceAsStream("/JeneralDB-config.properties"));
+            Class.forName(properties.getProperty("db_driver"));
+            conn = DriverManager.getConnection(properties.getProperty("db_url"), properties.getProperty("db_username"),
+                    properties.getProperty("db_password"));
         }
         return conn;
     }
@@ -65,6 +66,7 @@ public class DBUtil {
             stmt = connection.createStatement();
             rs = stmt.executeQuery(sql);
             genDataFromResultSet(rs, lists);
+            System.out.println("JeneralDB：执行sql: " + sql);
         } finally {
             if (null != rs)
                 rs.close();
@@ -96,6 +98,7 @@ public class DBUtil {
             }
             rs = statement.getResultSet();
             genDataFromResultSet(rs, lists);
+            System.out.println("JeneralDB：执行sql: " + sql);
         } finally {
             if (null != rs)
                 rs.close();
@@ -111,7 +114,7 @@ public class DBUtil {
             throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
-        while (null != rs && rs.next()) {
+        while (rs.next()) {
             Map<String, Object> map = new HashMap<>();
             for (int i = 0; i < columnCount; i++) {
                 String name = metaData.getColumnName(i + 1);
@@ -138,9 +141,11 @@ public class DBUtil {
         try {
             stmt = con.createStatement();
             resultSet = stmt.executeQuery(sql);
+            System.out.println("JeneralDB：执行sql: " + sql);
             Field[] fields = beanClass.getDeclaredFields();
-            for (Field field : fields)
+            for (Field field : fields) {
                 field.setAccessible(true);
+            }
             while (null != resultSet && resultSet.next()) {
                 T t = beanClass.newInstance();
                 for (Field field : fields) {
@@ -182,12 +187,15 @@ public class DBUtil {
         ResultSet rs = null;
         try {
             preStmt = con.prepareStatement(sql);
-            for (int i = 0; i < params.length; i++)
-                preStmt.setObject(i + 1, params[i]);// 下标从1开始
+            for (int i = 0; i < params.length; i++) {
+                preStmt.setObject(i + 1, params[i]);
+            }
             rs = preStmt.executeQuery();
+            System.out.println("JeneralDB：执行sql: " + sql);
             Field[] fields = beanClass.getDeclaredFields();
-            for (Field f : fields)
+            for (Field f : fields) {
                 f.setAccessible(true);
+            }
             while (null != rs && rs.next()) {
                 T t = beanClass.newInstance();
                 for (Field f : fields) {
@@ -249,6 +257,7 @@ public class DBUtil {
             openConnHere = true;
         }
         Statement statement = conn.createStatement();
+        System.out.println("JeneralDB：执行sql: " + sql);
         result = statement.executeUpdate(sql);
         statement.close();
         if (openConnHere) {
@@ -267,8 +276,10 @@ public class DBUtil {
         }
         PreparedStatement preStmt = conn.prepareStatement(sql);
         for (int i = 0; i < params.length; i++) {
+            System.out.println("JeneralDB：执行sql: " + sql);
             preStmt.setObject(i + 1, params[i]);// 下标从1开始
         }
+
         result = preStmt.executeUpdate();
         preStmt.close();
         if (openConnHere) {
@@ -292,6 +303,7 @@ public class DBUtil {
         Statement stmt = con.createStatement();
         for (String sql : sqlArray) {
             stmt.addBatch(sql);
+            System.out.println("JeneralDB：执行sql: " + sql);
         }
         result = stmt.executeBatch();
         stmt.close();
@@ -313,6 +325,7 @@ public class DBUtil {
                     preStmt.setObject(k + 1, obj);
                 }
                 preStmt.addBatch();
+                System.out.println("JeneralDB：执行sql: " + sql);
             }
             return preStmt.executeBatch();
         } finally {

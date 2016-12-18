@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
+ *
  * Created by sunny on 2016/11/29.
  */
 public class DataTable {
@@ -131,8 +132,8 @@ public class DataTable {
     }
 
     public DataTable(Object obj) throws IllegalAccessException {
-        String[] colArr = null;
-        Object[] rowArr = null;
+        String[] colArr;
+        Object[] rowArr;
         Class<?> ownerClass = obj.getClass();
         Field[] fields = ownerClass.getDeclaredFields();
         {
@@ -189,9 +190,9 @@ public class DataTable {
         DataTable cloneObject = new DataTable();
         cloneObject.setColumns(new ArrayList<>());
         cloneObject.setRows(new ArrayList<>());
-        Iterator iterator = this.getColumns().iterator();
-        while (iterator.hasNext()) {
-            cloneObject.getColumns().add((String) iterator.next());
+        List<String> columns = this.getColumns();
+        for (String column : columns) {
+            cloneObject.getColumns().add(column);
         }
         cloneObject.addAll(this.getRows());
         return cloneObject;
@@ -331,7 +332,7 @@ public class DataTable {
             }
         }
         this.rows = new ArrayList<>(dataArr.length);
-        if (dataArr != null && dataArr.length > 0) {
+        if (dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
             }
@@ -379,7 +380,7 @@ public class DataTable {
             for (int j = 0; j < fields.length; j++) {
                 fields[j].setAccessible(true);
                 String rowName = fields[j].getName();
-                Object value = null;
+                Object value;
                 try {
                     value = getObjectByColumnNameInRow(rowName, i);
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -423,7 +424,6 @@ public class DataTable {
      * @param index   行数
      */
     public Object getObjectByColumnNameInRow(String rowName, int index) {
-        Object value = null;
         Object[] valuesOfRowAtIndex = this.getRowAtIndex(index);
         int indexOfColumnName = getIndexOfColumnNameInColumn(rowName);
         return valuesOfRowAtIndex[indexOfColumnName];
