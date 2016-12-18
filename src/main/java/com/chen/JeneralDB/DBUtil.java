@@ -338,12 +338,19 @@ public class DBUtil {
             field.setAccessible(true);
             String columnName = field.getName();
             Object value = field.get(obj);
+            if (null == value) continue;
             columns.append(columnName);
             values.append("'" + value.toString() + "'");
             if (columnNum++ < size - 1) {
-                columns.append(" , ");
-                values.append(" , ");
+                columns.append(" ,");
+                values.append(" ,");
             }
+        }
+        if (columns.charAt(columns.length() - 1) == ',') {
+            columns = columns.deleteCharAt(columns.length() - 1);
+        }
+        if (values.charAt(values.length() - 1) == ',') {
+            values = values.deleteCharAt(values.length() - 1);
         }
         values.append(" ) ");
         columns.append(values);
