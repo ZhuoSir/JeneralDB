@@ -1,5 +1,6 @@
 package com.chen.JeneralDB;
 
+
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
@@ -10,9 +11,21 @@ import java.util.Date;
  */
 public class DBUtil {
 
-    private static Connection conn = null;
+    private Connection conn = null;
 
-    public static Connection openConnection()
+    private static DBUtil dbUtil;
+
+    public DBUtil() {
+    }
+
+    public static DBUtil getInstance() {
+        if (dbUtil == null) {
+            dbUtil = new DBUtil();
+        }
+        return dbUtil;
+    }
+
+    public Connection openConnection()
             throws Exception {
         if (null == conn || conn.isClosed()) {
             Properties p = new Properties();
@@ -24,7 +37,7 @@ public class DBUtil {
         return conn;
     }
 
-    public static void closeConnection() throws SQLException {
+    public void closeConnection() throws SQLException {
         try {
             if (null != conn) {
                 conn.close();
@@ -35,15 +48,15 @@ public class DBUtil {
         }
     }
 
-    public static List<Map<String, Object>> queryMapList(String sql)
+    public List<Map<String, Object>> queryMapList(String sql)
             throws Exception {
-        return queryMapList(null, sql);
+        return queryMapList(conn, sql);
     }
 
-    public static List<Map<String, Object>> queryMapList(Connection connection, String sql)
+    public List<Map<String, Object>> queryMapList(Connection connection, String sql)
             throws Exception {
         if (null == connection) {
-            connection = openConnection();
+            connection = this.openConnection();
         }
         List<Map<String, Object>> lists = new ArrayList<Map<String, Object>>();
         Statement stmt = null;
@@ -63,12 +76,12 @@ public class DBUtil {
         return lists;
     }
 
-    public static List<Map<String, Object>> queryMapList(String sql, Object... params)
+    public List<Map<String, Object>> queryMapList(String sql, Object... params)
             throws Exception {
-        return queryMapList(null, sql, params);
+        return queryMapList(conn, sql, params);
     }
 
-    public static List<Map<String, Object>> queryMapList(Connection connection, String sql, Object... params)
+    public List<Map<String, Object>> queryMapList(Connection connection, String sql, Object... params)
             throws Exception {
         if (null == connection) {
             connection = openConnection();
@@ -94,7 +107,7 @@ public class DBUtil {
         return lists;
     }
 
-    private static void genDataFromResultSet(ResultSet rs, List<Map<String, Object>> lists)
+    private void genDataFromResultSet(ResultSet rs, List<Map<String, Object>> lists)
             throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
@@ -109,12 +122,12 @@ public class DBUtil {
         }
     }
 
-    public static <T> List<T> queryBeanList(String sql, Class<T> beanClass)
+    public <T> List<T> queryBeanList(String sql, Class<T> beanClass)
             throws Exception {
-        return queryBeanList(null, sql, beanClass);
+        return queryBeanList(conn, sql, beanClass);
     }
 
-    public static <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass)
+    public <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass)
             throws Exception {
         if (null == con) {
             con = openConnection();
@@ -153,12 +166,12 @@ public class DBUtil {
         return lists;
     }
 
-    public static <T> List<T> queryBeanList(String sql, Class<T> beanClass, Object... params)
+    public <T> List<T> queryBeanList(String sql, Class<T> beanClass, Object... params)
             throws Exception {
-        return queryBeanList(null, sql, beanClass, params);
+        return queryBeanList(conn, sql, beanClass, params);
     }
 
-    public static <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass, Object... params)
+    public <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass, Object... params)
             throws Exception {
         if (null == con) {
             con = openConnection();
@@ -201,23 +214,23 @@ public class DBUtil {
         return lists;
     }
 
-    public static <T> T queryBean(String sql, Class<T> beanClass)
+    public <T> T queryBean(String sql, Class<T> beanClass)
             throws Exception {
-        List<T> lists = queryBeanList(null, sql, beanClass);
+        List<T> lists = queryBeanList(conn, sql, beanClass);
         if (lists.size() != 1)
             throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
         return lists.get(0);
     }
 
-    public static <T> T queryBean(String sql, Class<T> beanClass, Object... params)
+    public <T> T queryBean(String sql, Class<T> beanClass, Object... params)
             throws Exception {
-        List<T> lists = queryBeanList(null, sql, beanClass, params);
+        List<T> lists = queryBeanList(conn, sql, beanClass, params);
         if (lists.size() != 1)
             throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
         return lists.get(0);
     }
 
-    public static <T> DataTable queryDataTable(String sql, Class<T> beanClass)
+    public <T> DataTable queryDataTable(String sql, Class<T> beanClass)
             throws Exception {
         List<T> list = queryBeanList(sql, beanClass);
         DataTable dataTable = null;
@@ -227,61 +240,68 @@ public class DBUtil {
         return dataTable;
     }
 
-    public static int execute(String sql)
+    public int execute(String sql)
             throws Exception {
-        Statement statement = null;
-        try {
-            statement = openConnection().createStatement();
-            return statement.executeUpdate(sql);
-        } finally {
-            if (null != statement)
-                statement.close();
+        boolean openConnHere = false;
+        int result;
+        if (null == conn) {
+            conn = openConnection();
+            openConnHere = true;
+        }
+        Statement statement = conn.createStatement();
+        result = statement.executeUpdate(sql);
+        statement.close();
+        if (openConnHere) {
             closeConnection();
         }
+        return result;
     }
 
-    public static int execute(String sql, Object... params)
+    public int execute(String sql, Object... params)
             throws Exception {
-        PreparedStatement preStmt = null;
-        try {
-            preStmt = openConnection().prepareStatement(sql);
-            for (int i = 0; i < params.length; i++)
-                preStmt.setObject(i + 1, params[i]);// 下标从1开始
-            return preStmt.executeUpdate();
-        } finally {
-            if (null != preStmt)
-                preStmt.close();
+        boolean openConnHere = false;
+        int result;
+        if (null == conn) {
+            conn = openConnection();
+            openConnHere = true;
+        }
+        PreparedStatement preStmt = conn.prepareStatement(sql);
+        for (int i = 0; i < params.length; i++) {
+            preStmt.setObject(i + 1, params[i]);// 下标从1开始
+        }
+        result = preStmt.executeUpdate();
+        preStmt.close();
+        if (openConnHere) {
             closeConnection();
         }
+        return result;
     }
 
-    public static int[] executeAsBatch(List<String> sqlList)
+    public int[] executeAsBatch(List<String> sqlList)
             throws Exception {
-        return executeAsBatch(null, sqlList.toArray(new String[]{}));
+        return executeAsBatch(conn, sqlList.toArray(new String[]{}));
     }
 
-    public static int[] executeAsBatch(Connection con, String[] sqlArray) throws Exception {
+    public int[] executeAsBatch(Connection con, String[] sqlArray) throws Exception {
+        boolean openConnHere = false;
+        int[] result;
         if (null == con) {
             con = openConnection();
+            openConnHere = true;
         }
-        Statement stmt = null;
-        try {
-            stmt = con.createStatement();
-            for (String sql : sqlArray) {
-                stmt.addBatch(sql);
-            }
-            return stmt.executeBatch();
-        } finally {
-            if (null != stmt) {
-                stmt.close();
-            }
-            if (null != con) {
-                con.close();
-            }
+        Statement stmt = con.createStatement();
+        for (String sql : sqlArray) {
+            stmt.addBatch(sql);
         }
+        result = stmt.executeBatch();
+        stmt.close();
+        if (openConnHere) {
+            con.close();
+        }
+        return result;
     }
 
-    public static int[] executeAsBatch(String sql, Object[][] params)
+    public int[] executeAsBatch(String sql, Object[][] params)
             throws Exception {
         PreparedStatement preStmt = null;
         try {
@@ -303,7 +323,7 @@ public class DBUtil {
         }
     }
 
-    public static int save(Object obj) throws Exception {
+    public int save(Object obj) throws Exception {
         if (obj == null) {
             throw new NullPointerException("保存对象不能为Null");
         }
@@ -327,10 +347,10 @@ public class DBUtil {
         }
         values.append(" ) ");
         columns.append(values);
-        return DBUtil.execute(columns.toString());
+        return this.execute(columns.toString());
     }
 
-    protected static <T> void setValue(T t, Field f, Object value)
+    protected <T> void setValue(T t, Field f, Object value)
             throws Exception {
         if (null == value)
             return;
@@ -361,5 +381,35 @@ public class DBUtil {
         } else {
             throw new Exception("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
         }
+    }
+
+    /**
+     * 开启事务。若数据库连接尚未开启，开启之。
+     *
+     * @throws Exception
+     */
+    public void transBegin() throws Exception {
+        if (null == conn) openConnection();
+        conn.setAutoCommit(false);
+    }
+
+    /**
+     * 提交事务。提交事务后，自动关闭连接。
+     *
+     * @throws Exception
+     */
+    public void transCommit() throws Exception {
+        conn.commit();
+        closeConnection();
+    }
+
+    /**
+     * 回滚事务。提交事务后，自动关闭连接。
+     *
+     * @throws Exception
+     */
+    public void transRollBack() throws Exception {
+        conn.rollback();
+        closeConnection();
     }
 }
