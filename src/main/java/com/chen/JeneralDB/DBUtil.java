@@ -58,7 +58,7 @@ public class DBUtil {
         if (null == connection) {
             connection = this.openConnection();
         }
-        List<Map<String, Object>> lists = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> lists = new ArrayList<>();
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -86,7 +86,7 @@ public class DBUtil {
         if (null == connection) {
             connection = openConnection();
         }
-        List<Map<String, Object>> lists = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> lists = new ArrayList<>();
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
@@ -112,7 +112,7 @@ public class DBUtil {
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
         while (null != rs && rs.next()) {
-            Map<String, Object> map = new HashMap<String, Object>();
+            Map<String, Object> map = new HashMap<>();
             for (int i = 0; i < columnCount; i++) {
                 String name = metaData.getColumnName(i + 1);
                 Object value = rs.getObject(name);
@@ -135,11 +135,10 @@ public class DBUtil {
         List<T> lists = new ArrayList<T>();
         Statement stmt = null;
         ResultSet resultSet = null;
-        Field[] fields = null;
         try {
             stmt = con.createStatement();
             resultSet = stmt.executeQuery(sql);
-            fields = beanClass.getDeclaredFields();
+            Field[] fields = beanClass.getDeclaredFields();
             for (Field field : fields)
                 field.setAccessible(true);
             while (null != resultSet && resultSet.next()) {
@@ -149,6 +148,8 @@ public class DBUtil {
                     try {
                         Object value = resultSet.getObject(name);
                         setValue(t, field, value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     } finally {
                         continue;
                     }
@@ -179,13 +180,12 @@ public class DBUtil {
         List<T> lists = new ArrayList<T>();
         PreparedStatement preStmt = null;
         ResultSet rs = null;
-        Field[] fields = null;
         try {
             preStmt = con.prepareStatement(sql);
             for (int i = 0; i < params.length; i++)
                 preStmt.setObject(i + 1, params[i]);// 下标从1开始
             rs = preStmt.executeQuery();
-            fields = beanClass.getDeclaredFields();
+            Field[] fields = beanClass.getDeclaredFields();
             for (Field f : fields)
                 f.setAccessible(true);
             while (null != rs && rs.next()) {
