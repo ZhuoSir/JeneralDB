@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.Date;
 
 /**
- *
  * Created by sunny-chen on 16/11/27.
  */
 public class DBUtil {
@@ -225,17 +224,13 @@ public class DBUtil {
     public <T> T queryBean(String sql, Class<T> beanClass)
             throws Exception {
         List<T> lists = queryBeanList(conn, sql, beanClass);
-        if (lists.size() != 1)
-            throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
-        return lists.get(0);
+        return (null != lists && !lists.isEmpty()) ? lists.get(0) : null;
     }
 
     public <T> T queryBean(String sql, Class<T> beanClass, Object... params)
             throws Exception {
         List<T> lists = queryBeanList(conn, sql, beanClass, params);
-        if (lists.size() != 1)
-            throw new SQLException("SqlError：期待一行返回值，却返回了太多行！");
-        return lists.get(0);
+        return (null != lists && !lists.isEmpty()) ? lists.get(0) : null;
     }
 
     public <T> DataTable queryDataTable(String sql, Class<T> beanClass)
@@ -337,7 +332,7 @@ public class DBUtil {
     }
 
     public int save(Object obj) throws Exception {
-        if (obj == null) {
+        if (null == obj) {
             throw new NullPointerException("保存对象不能为Null");
         }
         StringBuilder columns = new StringBuilder(" insert into ");
