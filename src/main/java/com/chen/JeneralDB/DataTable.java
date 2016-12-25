@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
- *
  * Created by sunny on 2016/11/29.
  */
 public class DataTable {
@@ -66,8 +65,8 @@ public class DataTable {
      *
      * @param list 数据集合
      */
-    public DataTable(List<?> list) throws Exception {
-        if (list == null || (list.size() == 0)) {
+    public <T> DataTable(List<T> list, Class<T> tClass) throws Exception {
+        if (list == null || list.isEmpty()) {
             throw new Exception("DataTable初始化list不能为Null或者size为0");
         }
         String[] colArr = null;
@@ -89,6 +88,50 @@ public class DataTable {
                 field.setAccessible(true);
                 Object value = field.get(obj);
                 dataArr[i][j] = value != null ? value : null;
+            }
+        }
+
+        this.columns = new ArrayList<>(colArr.length);
+        if (colArr != null && colArr.length > 0) {
+            for (int c = 0; c < colArr.length; c++) {
+                this.columns.add(colArr[c]);
+            }
+        }
+
+        this.rows = new ArrayList<>(dataArr.length);
+        if (dataArr != null && dataArr.length > 0) {
+            for (int k = 0; k < dataArr.length; k++) {
+                this.rows.add(dataArr[k]);
+            }
+        }
+    }
+
+    public DataTable(List<Map<String, Object>> list)
+            throws Exception {
+        if (list == null || list.isEmpty()) {
+            throw new Exception("DataTable初始化list不能为Null或者size为0");
+        }
+        String[] colArr = null;
+        {
+            Map<String, Object> temp = list.get(0);
+            Set<String> key = temp.keySet();
+            colArr = new String[key.size()];
+            Iterator<String> iterator = key.iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                colArr[i] = iterator.next();
+                i++;
+            }
+        }
+        int size = list.size();
+        Object[][] dataArr = new Object[size][colArr.length];
+        {
+            for (int i = 0; i < size; i++) {
+                Map<String, Object> map = list.get(i);
+                for (int j = 0; j < colArr.length; j++) {
+                    String key = colArr[j];
+                    dataArr[i][j] = map.get(key);
+                }
             }
         }
 
