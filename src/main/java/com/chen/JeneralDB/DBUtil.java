@@ -15,10 +15,10 @@ public class DBUtil {
 
     private static DBUtil dbUtil;
 
-    public DBUtil() {
+    private DBUtil() {
     }
 
-    public static DBUtil getInstance() {
+    public static synchronized DBUtil getInstance() {
         if (null == dbUtil) {
             dbUtil = new DBUtil();
         }
