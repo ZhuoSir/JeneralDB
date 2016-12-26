@@ -72,7 +72,7 @@ public class DBUtil {
             if (null != stmt)
                 stmt.close();
             if (null != connection)
-                connection.close();
+                closeConnection();
         }
         return lists;
     }
@@ -104,7 +104,7 @@ public class DBUtil {
             if (null != statement)
                 statement.close();
             if (null != connection)
-                connection.close();
+                closeConnection();
         }
         return lists;
     }
@@ -166,7 +166,7 @@ public class DBUtil {
             if (null != stmt)
                 stmt.close();
             if (null != con)
-                con.close();
+                closeConnection();
         }
         return lists;
     }
@@ -216,7 +216,7 @@ public class DBUtil {
             if (null != preStmt)
                 preStmt.close();
             if (null != con)
-                con.close();
+                closeConnection();
         }
         return lists;
     }
@@ -313,7 +313,7 @@ public class DBUtil {
         result = stmt.executeBatch();
         stmt.close();
         if (openConnHere) {
-            con.close();
+            closeConnection();
         }
         return result;
     }
