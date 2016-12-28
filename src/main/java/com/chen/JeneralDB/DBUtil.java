@@ -15,6 +15,8 @@ public class DBUtil {
 
     private static DBUtil dbUtil;
 
+    private static boolean AutoCommit = true;
+
     private DBUtil() {
     }
 
@@ -33,7 +35,9 @@ public class DBUtil {
             Class.forName(properties.getProperty("db_driver"));
             conn = DriverManager.getConnection(properties.getProperty("db_url"), properties.getProperty("db_username"),
                     properties.getProperty("db_password"));
+            conn.setAutoCommit(AutoCommit);
         }
+
         return conn;
     }
 
@@ -55,7 +59,7 @@ public class DBUtil {
 
     public List<Map<String, Object>> queryMapList(Connection connection, String sql)
             throws Exception {
-        if (null == connection) {
+        if (null == connection || connection.isClosed()) {
             connection = this.openConnection();
         }
         List<Map<String, Object>> lists = new ArrayList<>();
@@ -71,8 +75,8 @@ public class DBUtil {
                 rs.close();
             if (null != stmt)
                 stmt.close();
-            if (null != connection)
-                closeConnection();
+            if (null != connection && !AutoCommit)
+                connection.close();
         }
         return lists;
     }
@@ -84,7 +88,7 @@ public class DBUtil {
 
     public List<Map<String, Object>> queryMapList(Connection connection, String sql, Object... params)
             throws Exception {
-        if (null == connection) {
+        if (null == connection || connection.isClosed()) {
             connection = openConnection();
         }
         List<Map<String, Object>> lists = new ArrayList<>();
@@ -103,8 +107,8 @@ public class DBUtil {
                 rs.close();
             if (null != statement)
                 statement.close();
-            if (null != connection)
-                closeConnection();
+            if (null != connection && !AutoCommit)
+                connection.close();
         }
         return lists;
     }
@@ -129,16 +133,16 @@ public class DBUtil {
         return queryBeanList(conn, sql, beanClass);
     }
 
-    public <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass)
+    public <T> List<T> queryBeanList(Connection connection, String sql, Class<T> beanClass)
             throws Exception {
-        if (null == con) {
-            con = openConnection();
+        if (null == connection || connection.isClosed()) {
+            connection = openConnection();
         }
         List<T> lists = new ArrayList<T>();
         Statement stmt = null;
         ResultSet resultSet = null;
         try {
-            stmt = con.createStatement();
+            stmt = connection.createStatement();
             resultSet = stmt.executeQuery(sql);
             System.out.println("JeneralDB：执行sql: " + sql);
             Field[] fields = beanClass.getDeclaredFields();
@@ -165,8 +169,8 @@ public class DBUtil {
                 resultSet.close();
             if (null != stmt)
                 stmt.close();
-            if (null != con)
-                closeConnection();
+            if (null != connection && !AutoCommit)
+                connection.close();
         }
         return lists;
     }
@@ -176,16 +180,16 @@ public class DBUtil {
         return queryBeanList(conn, sql, beanClass, params);
     }
 
-    public <T> List<T> queryBeanList(Connection con, String sql, Class<T> beanClass, Object... params)
+    public <T> List<T> queryBeanList(Connection connection, String sql, Class<T> beanClass, Object... params)
             throws Exception {
-        if (null == con) {
-            con = openConnection();
+        if (null == connection || connection.isClosed()) {
+            connection = openConnection();
         }
         List<T> lists = new ArrayList<T>();
         PreparedStatement preStmt = null;
         ResultSet rs = null;
         try {
-            preStmt = con.prepareStatement(sql);
+            preStmt = connection.prepareStatement(sql);
             for (int i = 0; i < params.length; i++) {
                 preStmt.setObject(i + 1, params[i]);
             }
@@ -215,8 +219,8 @@ public class DBUtil {
                 rs.close();
             if (null != preStmt)
                 preStmt.close();
-            if (null != con)
-                closeConnection();
+            if (null != connection && !AutoCommit)
+                connection.close();
         }
         return lists;
     }
@@ -255,41 +259,52 @@ public class DBUtil {
 
     public int execute(String sql)
             throws Exception {
-        boolean openConnHere = false;
         int result;
+
         if (null == conn) {
             conn = openConnection();
-            openConnHere = true;
         }
+
+        if (conn.isClosed()) {
+            conn = openConnection();
+        }
+
         Statement statement = conn.createStatement();
         System.out.println("JeneralDB：执行sql: " + sql);
         result = statement.executeUpdate(sql);
         statement.close();
-        if (openConnHere) {
-            closeConnection();
+
+        if (AutoCommit) {
+            conn.close();
         }
+
         return result;
     }
 
     public int execute(String sql, Object... params)
             throws Exception {
-        boolean openConnHere = false;
         int result;
+
         if (null == conn) {
             conn = openConnection();
-            openConnHere = true;
         }
+
+        if (conn.isClosed()) {
+            conn = openConnection();
+        }
+
         PreparedStatement preStmt = conn.prepareStatement(sql);
         for (int i = 0; i < params.length; i++) {
             System.out.println("JeneralDB：执行sql: " + sql);
             preStmt.setObject(i + 1, params[i]);// 下标从1开始
         }
-
         result = preStmt.executeUpdate();
+
         preStmt.close();
-        if (openConnHere) {
-            closeConnection();
+        if (AutoCommit) {
+            conn.close();
         }
+
         return result;
     }
 
@@ -298,23 +313,29 @@ public class DBUtil {
         return executeAsBatch(conn, sqlList.toArray(new String[]{}));
     }
 
-    public int[] executeAsBatch(Connection con, String[] sqlArray) throws Exception {
-        boolean openConnHere = false;
+    public int[] executeAsBatch(Connection conn, String[] sqlArray) throws Exception {
         int[] result;
-        if (null == con) {
-            con = openConnection();
-            openConnHere = true;
+
+        if (null == conn) {
+            conn = openConnection();
         }
-        Statement stmt = con.createStatement();
+
+        if (conn.isClosed()) {
+            conn = openConnection();
+        }
+
+        Statement stmt = conn.createStatement();
         for (String sql : sqlArray) {
             stmt.addBatch(sql);
             System.out.println("JeneralDB：执行sql: " + sql);
         }
         result = stmt.executeBatch();
+
         stmt.close();
-        if (openConnHere) {
-            closeConnection();
+        if (AutoCommit) {
+            conn.close();
         }
+
         return result;
     }
 
@@ -337,7 +358,7 @@ public class DBUtil {
             if (null != preStmt) {
                 preStmt.close();
             }
-            closeConnection();
+            conn.close();
         }
     }
 
@@ -416,6 +437,7 @@ public class DBUtil {
     public void transBegin() throws Exception {
         if (null == conn) openConnection();
         conn.setAutoCommit(false);
+        this.AutoCommit = false;
     }
 
     /**
