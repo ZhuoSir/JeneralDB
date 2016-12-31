@@ -169,7 +169,7 @@ public class DBUtil {
                 resultSet.close();
             if (null != stmt)
                 stmt.close();
-            if (null != connection && !AutoCommit)
+            if (null != connection && AutoCommit)
                 connection.close();
         }
         return lists;
@@ -219,7 +219,7 @@ public class DBUtil {
                 rs.close();
             if (null != preStmt)
                 preStmt.close();
-            if (null != connection && !AutoCommit)
+            if (null != connection && AutoCommit)
                 connection.close();
         }
         return lists;
@@ -261,11 +261,7 @@ public class DBUtil {
             throws Exception {
         int result;
 
-        if (null == conn) {
-            conn = openConnection();
-        }
-
-        if (conn.isClosed()) {
+        if (null == conn || conn.isClosed()) {
             conn = openConnection();
         }
 
@@ -285,11 +281,7 @@ public class DBUtil {
             throws Exception {
         int result;
 
-        if (null == conn) {
-            conn = openConnection();
-        }
-
-        if (conn.isClosed()) {
+        if (null == conn || conn.isClosed()) {
             conn = openConnection();
         }
 
@@ -316,11 +308,7 @@ public class DBUtil {
     public int[] executeAsBatch(Connection conn, String[] sqlArray) throws Exception {
         int[] result;
 
-        if (null == conn) {
-            conn = openConnection();
-        }
-
-        if (conn.isClosed()) {
+        if (null == conn || conn.isClosed()) {
             conn = openConnection();
         }
 
