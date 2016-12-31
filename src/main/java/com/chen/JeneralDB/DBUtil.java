@@ -334,10 +334,12 @@ public class DBUtil {
             preStmt = openConnection().prepareStatement(sql);
             for (int i = 0; i < params.length; i++) {
                 Object[] rowParams = params[i];
+
                 for (int k = 0; k < rowParams.length; k++) {
                     Object obj = rowParams[k];
                     preStmt.setObject(k + 1, obj);
                 }
+
                 preStmt.addBatch();
                 System.out.println("JeneralDB：执行sql: " + sql);
             }
@@ -354,33 +356,42 @@ public class DBUtil {
         if (null == obj) {
             throw new NullPointerException("保存对象不能为Null");
         }
+
         StringBuilder columns = new StringBuilder(" insert into ");
         StringBuilder values = new StringBuilder(" ) values (");
+
         Class<?> t = obj.getClass();
         String tableName = t.getSimpleName();
         Field[] fields = t.getDeclaredFields();
         columns.append(tableName + " ( ");
+
         int size = fields.length, columnNum = 0;
         for (Field field : fields) {
             field.setAccessible(true);
             String columnName = field.getName();
             Object value = field.get(obj);
+
             if (null == value) continue;
             columns.append(columnName);
             values.append("'" + value.toString() + "'");
+
             if (columnNum++ < size - 1) {
                 columns.append(" ,");
                 values.append(" ,");
             }
         }
+
         if (columns.charAt(columns.length() - 1) == ',') {
             columns = columns.deleteCharAt(columns.length() - 1);
         }
+
         if (values.charAt(values.length() - 1) == ',') {
             values = values.deleteCharAt(values.length() - 1);
         }
+
         values.append(" ) ");
         columns.append(values);
+
         return this.execute(columns.toString());
     }
 
@@ -390,6 +401,7 @@ public class DBUtil {
             return;
         String v = value.toString();
         String n = f.getType().getName();
+
         if ("java.lang.Byte".equals(n) || "byte".equals(n)) {
             f.set(t, Byte.parseByte(v));
         } else if ("java.lang.Short".equals(n) || "short".equals(n)) {
