@@ -73,7 +73,7 @@ public class DBUtil {
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             genDataFromResultSet(rs, lists);
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
         } finally {
             if (null != rs)
                 rs.close();
@@ -104,7 +104,7 @@ public class DBUtil {
 
             rs = statement.getResultSet();
             genDataFromResultSet(rs, lists);
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
         } finally {
             if (null != rs)
                 rs.close();
@@ -146,7 +146,7 @@ public class DBUtil {
         try {
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
             Field[] fields = beanClass.getDeclaredFields();
 
             for (Field field : fields) {
@@ -197,7 +197,7 @@ public class DBUtil {
             }
 
             rs = preStmt.executeQuery();
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
             Field[] fields = beanClass.getDeclaredFields();
 
             for (Field f : fields) {
@@ -276,7 +276,7 @@ public class DBUtil {
         checkConnect();
 
         Statement statement = conn.createStatement();
-        System.out.println("JeneralDB：执行sql: " + sql);
+        print("执行sql: " + sql);
         result = statement.executeUpdate(sql);
         statement.close();
 
@@ -296,7 +296,7 @@ public class DBUtil {
 
         PreparedStatement preStmt = conn.prepareStatement(sql);
         for (int i = 0; i < params.length; i++) {
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
             preStmt.setObject(i + 1, params[i]);// 下标从1开始
         }
         result = preStmt.executeUpdate();
@@ -325,7 +325,7 @@ public class DBUtil {
 
         for (String sql : sqlArray) {
             stmt.addBatch(sql);
-            System.out.println("JeneralDB：执行sql: " + sql);
+            print("执行sql: " + sql);
         }
 
         result = stmt.executeBatch();
@@ -355,7 +355,7 @@ public class DBUtil {
                 }
 
                 preStmt.addBatch();
-                System.out.println("JeneralDB：执行sql: " + sql);
+                print("执行sql: " + sql);
             }
 
             return preStmt.executeBatch();
@@ -453,6 +453,21 @@ public class DBUtil {
             throw new Exception("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
         }
     }
+
+
+    /**
+     * 格式打印输出
+     */
+    public static void print(String content) {
+        if (null == content) {
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder("JeneralDB：");
+        builder.append(content);
+        System.out.println(builder.toString());
+    }
+
 
     /**
      * 检查连接是否开启，若数据库连接尚未开启，开启之。

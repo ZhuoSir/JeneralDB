@@ -243,6 +243,7 @@ public class DBFactory {
         printWriter.write(content);
         printWriter.flush();
         printWriter.close();
+        DBUtil.print("成功创建实体类" + javaFile.getPath());
     }
 
     public static void main(String[] args) {
