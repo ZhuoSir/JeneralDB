@@ -1,7 +1,11 @@
 package com.chen.JeneralDB;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
 import java.util.Properties;
 
 /**
@@ -22,6 +26,10 @@ public class DBFactory {
     private static String allColumnNameSql = "select column_name from information_schema.columns where table_name='%s' " +
             "order by table_schema,table_name";
 
+    private boolean utilPack = false;
+
+    private boolean sqlPack = false;
+
     private DBFactory() {
     }
 
@@ -29,6 +37,7 @@ public class DBFactory {
         if (null == dbFactory) {
             dbFactory = new DBFactory();
         }
+
         return dbFactory;
     }
 
@@ -45,15 +54,144 @@ public class DBFactory {
 
         String[] allTableNames = getAllTableNamesOfDataBase();
         for (int i = 0; i < allTableNames.length; i++) {
-            parseToJava(allTableNames[i], directory);
+            parseToJava(allTableNames[i], directory.getAbsolutePath());
         }
     }
 
     /**
      * 生成Java文件的主体类
      */
-    private void parseToJava(String allTableName, File directory) {
+    private void parseToJava(String allTableName, String directory)
+            throws Exception {
+        if (null == allTableName || allTableName.isEmpty() || null == directory) {
+            throw new NullPointerException();
+        }
 
+        StringBuilder sqlBuilder = new StringBuilder("select * from ");
+        sqlBuilder.append(allTableName);
+
+        ResultSetMetaData resultSet = DBUtil.getInstance().queryResultSetMetaData(sqlBuilder.toString());
+
+        int size = resultSet.getColumnCount();
+        String[] columnNames = new String[size];
+        String[] columnType = new String[size];
+        int[] columnSize = new int[size];
+
+        for (int i = 0; i < size; i++) {
+            columnNames[i] = resultSet.getColumnName(i + 1);
+            columnType[i] = resultSet.getColumnTypeName(i + 1);
+            columnSize[i] = resultSet.getColumnDisplaySize(i + 1);
+
+            if (columnType[i].equalsIgnoreCase("datetime")
+                    || columnType[i].equalsIgnoreCase("timestamp")) {
+                utilPack = true;
+            }
+
+            if (columnType[i].equalsIgnoreCase("image")
+                    || columnType[i].equalsIgnoreCase("text")) {
+                sqlPack = true;
+            }
+        }
+
+        String content = parse(allTableName, columnNames, columnType, columnSize);
+
+        StringBuffer javaFilePath = new StringBuffer(getProperties().getProperty("packageOutPath"));
+        javaFilePath.append("\\");
+        javaFilePath.append(initCap(allTableName));
+        javaFilePath.append(".java");
+
+        writeToJavaFile(content, javaFilePath.toString());
+    }
+
+    private String parse(String allTableName, String[] columnNames, String[] columnType, int[] columnSize)
+            throws IOException {
+        StringBuffer buffer = new StringBuffer();
+
+        if (utilPack) {
+            buffer.append("import java.util.Date;\r\n");
+        }
+
+        if (sqlPack) {
+            buffer.append("import java.sql.*;\r\n");
+        }
+
+        buffer.append("package " + getProperties().getProperty("packageSimplepath") + ";");
+        buffer.append("\r\n");
+
+        buffer.append("\r\n\r\npublic class " + initCap(allTableName) + " {\r\n");
+        processAllAttrs(buffer, columnNames, columnType);
+        processAllMethod(buffer, columnNames, columnType);
+        buffer.append("}\r\n");
+
+        return buffer.toString();
+    }
+
+    private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
+        for (int i = 0; i < colnames.length; i++) {
+            buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
+                    colnames[i] + "){\r\n");
+            buffer.append("\tthis." + colnames[i] + "=" + colnames[i] + ";\r\n");
+            buffer.append("\t}\r\n");
+            buffer.append("\r\n");
+            buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "(){\r\n");
+            buffer.append("\t\treturn " + colnames[i] + ";\r\n");
+            buffer.append("\t}\r\n");
+            buffer.append("\r\n");
+        }
+    }
+
+    private void processAllAttrs(StringBuffer buffer, String[] columnNames, String[] columnTypes) {
+        for (int i = 0; i < columnNames.length; i++) {
+            buffer.append("\tprivate ");
+            buffer.append(sqlType2JavaType(columnTypes[i]));
+            buffer.append(" ");
+            buffer.append(columnNames[i]);
+            buffer.append(";\r\n");
+            buffer.append("\r\n");
+        }
+    }
+
+    private String sqlType2JavaType(String sqlType) {
+        if (sqlType.equalsIgnoreCase("bit")) {
+            return "boolean";
+        } else if (sqlType.equalsIgnoreCase("tinyint")) {
+            return "byte";
+        } else if (sqlType.equalsIgnoreCase("smallint")) {
+            return "short";
+        } else if (sqlType.equalsIgnoreCase("int") || sqlType.equalsIgnoreCase("integer")) {
+            return "int";
+        } else if (sqlType.equalsIgnoreCase("bigint")) {
+            return "long";
+        } else if (sqlType.equalsIgnoreCase("float")) {
+            return "float";
+        } else if (sqlType.equalsIgnoreCase("decimal") || sqlType.equalsIgnoreCase("numeric")
+                || sqlType.equalsIgnoreCase("real") || sqlType.equalsIgnoreCase("money")
+                || sqlType.equalsIgnoreCase("smallmoney")) {
+            return "double";
+        } else if (sqlType.equalsIgnoreCase("varchar") || sqlType.equalsIgnoreCase("char")
+                || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
+                || sqlType.equalsIgnoreCase("text")) {
+            return "String";
+        } else if (sqlType.equalsIgnoreCase("datetime")) {
+            return "Date";
+        } else if (sqlType.equalsIgnoreCase("image")) {
+            return "Blod";
+        }
+        return null;
+    }
+
+    private String initCap(String allTableName) {
+        if (null == allTableName || allTableName.isEmpty()) {
+            return allTableName;
+        }
+
+        char[] ch = allTableName.toCharArray();
+
+        if (ch[0] >= 'a' && ch[0] <= 'z') {
+            ch[0] = (char) (ch[0] - 32);
+        }
+
+        return new String(ch);
     }
 
     /**
@@ -74,22 +212,6 @@ public class DBFactory {
     }
 
     /**
-     * 获取表中的所有列名
-     */
-    private String[] getAllColumnNamesOfTable(String tableName)
-            throws Exception {
-        String sql = String.format(allColumnNameSql, tableName);
-        Object[] allColumnNames = DBUtil.getInstance().queryDataTable(sql).getObjectsByColumnName("COLUMN_NAME");
-        String[] result = new String[allColumnNames.length];
-
-        for (int i = 0; i < result.length; i++) {
-            result[i] = allColumnNames[i].toString();
-        }
-
-        return result;
-    }
-
-    /**
      * 获取相应的配置文件信息
      */
     private Properties getProperties()
@@ -100,6 +222,27 @@ public class DBFactory {
         }
 
         return properties;
+    }
+
+    /**
+     * 将字符串写进java文件，如果没有文件创建之
+     */
+    private void writeToJavaFile(String content, String directory)
+            throws IOException {
+        if (null == content || content.isEmpty()
+                || null == directory || directory.isEmpty()) {
+            throw new NullPointerException();
+        }
+
+        File javaFile = new File(directory);
+        if (!javaFile.exists()) {
+            javaFile.createNewFile();
+        }
+
+        PrintWriter printWriter = new PrintWriter(javaFile);
+        printWriter.write(content);
+        printWriter.flush();
+        printWriter.close();
     }
 
     public static void main(String[] args) {
