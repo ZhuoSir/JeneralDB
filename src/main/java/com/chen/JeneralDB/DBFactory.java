@@ -94,7 +94,7 @@ public class DBFactory {
         String content = parse(allTableName, columnNames, columnType, columnSize);
 
         StringBuffer javaFilePath = new StringBuffer(getProperties().getProperty("packageOutPath"));
-        javaFilePath.append("\\");
+        javaFilePath.append(File.separator);
         javaFilePath.append(initCap(allTableName));
         javaFilePath.append(".java");
 
