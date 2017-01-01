@@ -118,6 +118,7 @@ public class DBFactory {
         }
 
         buffer.append("\r\n\r\npublic class " + initCap(allTableName) + " {\r\n");
+        buffer.append("\r\n");
         processAllAttrs(buffer, columnNames, columnType);
         processAllMethod(buffer, columnNames, columnType);
         buffer.append("}\r\n");
