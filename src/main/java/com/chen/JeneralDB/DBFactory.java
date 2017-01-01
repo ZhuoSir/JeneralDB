@@ -1,10 +1,8 @@
 package com.chen.JeneralDB;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.util.Properties;
 
@@ -107,6 +105,10 @@ public class DBFactory {
             throws IOException {
         StringBuffer buffer = new StringBuffer();
 
+        buffer.append("package " + getProperties().getProperty("packageSimplepath") + ";");
+        buffer.append("\r\n");
+        buffer.append("\r\n");
+
         if (utilPack) {
             buffer.append("import java.util.Date;\r\n");
         }
@@ -114,9 +116,6 @@ public class DBFactory {
         if (sqlPack) {
             buffer.append("import java.sql.*;\r\n");
         }
-
-        buffer.append("package " + getProperties().getProperty("packageSimplepath") + ";");
-        buffer.append("\r\n");
 
         buffer.append("\r\n\r\npublic class " + initCap(allTableName) + " {\r\n");
         processAllAttrs(buffer, columnNames, columnType);
@@ -172,7 +171,7 @@ public class DBFactory {
                 || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
                 || sqlType.equalsIgnoreCase("text")) {
             return "String";
-        } else if (sqlType.equalsIgnoreCase("datetime")) {
+        } else if (sqlType.equalsIgnoreCase("datetime") || sqlType.equalsIgnoreCase("timestamp")) {
             return "Date";
         } else if (sqlType.equalsIgnoreCase("image")) {
             return "Blod";
