@@ -130,7 +130,7 @@ public class DBFactory {
         for (int i = 0; i < colnames.length; i++) {
             buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
                     colnames[i] + "){\r\n");
-            buffer.append("\tthis." + colnames[i] + "=" + colnames[i] + ";\r\n");
+            buffer.append("\tthis." + colnames[i] + " = " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
             buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "(){\r\n");
