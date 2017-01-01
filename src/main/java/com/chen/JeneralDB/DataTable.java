@@ -2,6 +2,7 @@ package com.chen.JeneralDB;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by sunny on 2016/11/29.
@@ -34,9 +35,11 @@ public class DataTable {
      */
     public DataTable(int columnsCount) {
         this.columns = new ArrayList<>(columnsCount);
+
         for (int i = 0; i < columnsCount; i++) {
             this.columns.add("Columns" + i);
         }
+
         rows = new ArrayList<>();
     }
 
@@ -51,11 +54,13 @@ public class DataTable {
             if (columnNames.length != rowDatas.length) {
                 throw new Exception("行记录与列记录长度必须保持一致");
             }
+
             this.columns = new ArrayList<>(columnNames.length);
             for (int i = 0; i < columnNames.length; i++) {
                 this.columns.add(columnNames[i]);
             }
         }
+
         this.rows = new ArrayList<>();
         this.rows.add(rowDatas);
     }
@@ -69,7 +74,7 @@ public class DataTable {
         if (list == null || list.isEmpty()) {
             throw new Exception("DataTable初始化list不能为Null或者size为0");
         }
-        String[] colArr = null;
+        String[] colArr;
         {
             Class<?> ownerClass = list.get(0).getClass();
             Field[] fields = ownerClass.getDeclaredFields();
@@ -83,6 +88,7 @@ public class DataTable {
             Object obj = list.get(i);
             Class<?> ownerClass = obj.getClass();
             Field[] fields = ownerClass.getDeclaredFields();
+
             for (int j = 0; j < fields.length; j++) {
                 Field field = fields[j];
                 field.setAccessible(true);
@@ -92,14 +98,14 @@ public class DataTable {
         }
 
         this.columns = new ArrayList<>(colArr.length);
-        if (colArr != null && colArr.length > 0) {
+        if (colArr.length > 0) {
             for (int c = 0; c < colArr.length; c++) {
                 this.columns.add(colArr[c]);
             }
         }
 
         this.rows = new ArrayList<>(dataArr.length);
-        if (dataArr != null && dataArr.length > 0) {
+        if (dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
             }
@@ -116,13 +122,14 @@ public class DataTable {
             Map<String, Object> temp = list.get(0);
             Set<String> key = temp.keySet();
             colArr = new String[key.size()];
-            Iterator<String> iterator = key.iterator();
+            java.util.Iterator<String> iterator = key.iterator();
             int i = 0;
             while (iterator.hasNext()) {
                 colArr[i] = iterator.next();
                 i++;
             }
         }
+
         int size = list.size();
         Object[][] dataArr = new Object[size][colArr.length];
         {
@@ -136,14 +143,14 @@ public class DataTable {
         }
 
         this.columns = new ArrayList<>(colArr.length);
-        if (colArr != null && colArr.length > 0) {
+        if (colArr.length > 0) {
             for (int c = 0; c < colArr.length; c++) {
                 this.columns.add(colArr[c]);
             }
         }
 
         this.rows = new ArrayList<>(dataArr.length);
-        if (dataArr != null && dataArr.length > 0) {
+        if (dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
             }
@@ -165,12 +172,15 @@ public class DataTable {
                 colArr[i] = fields[i].getName();
             }
         }
+
         this.columns = new ArrayList<>(colArr.length);
-        if (colArr != null && colArr.length > 0) {
+
+        if (colArr.length > 0) {
             for (int c = 0; c < colArr.length; c++) {
                 this.columns.add(colArr[c]);
             }
         }
+
         this.rows = new ArrayList<>(0);
     }
 
@@ -185,15 +195,18 @@ public class DataTable {
                 colArr[i] = fields[i].getName();
             }
         }
+
         this.columns = new ArrayList<>(colArr.length);
         this.columns.addAll(Arrays.asList(colArr));
         this.rows = new ArrayList<>(1);
         rowArr = new Object[colArr.length];
+
         for (int j = 0; j < fields.length; j++) {
             fields[j].setAccessible(true);
             Object value = fields[j].get(obj);
             rowArr[j] = value;
         }
+
         this.rows.add(rowArr);
     }
 
@@ -211,16 +224,19 @@ public class DataTable {
             for (int i = 0; i < this.rows.size(); i++) {
                 Object[] theRow = rows.get(i);
                 Object[] otherRow = dataTable.getRowAtIndex(i);
+
                 if (theRow.length != otherRow.length) {
                     finalResult = false;
                     break;
                 }
+
                 for (int j = 0; j < theRow.length; j++) {
                     if (!theRow[j].equals(otherRow[j])) {
                         finalResult = false;
                         break;
                     }
                 }
+
                 if (!finalResult) {
                     break;
                 }
@@ -234,10 +250,13 @@ public class DataTable {
         cloneObject.setColumns(new ArrayList<>());
         cloneObject.setRows(new ArrayList<>());
         List<String> columns = this.getColumns();
+
         for (String column : columns) {
             cloneObject.getColumns().add(column);
         }
+
         cloneObject.addAll(this.getRows());
+
         return cloneObject;
     }
 
@@ -285,6 +304,7 @@ public class DataTable {
         @Override
         public Object[] next() {
             int i = cursor;
+
             if (i >= getRowSize()) {
                 throw new NoSuchElementException();
             } else {
@@ -296,6 +316,7 @@ public class DataTable {
         @Override
         public void remove() {
             int i = cursor;
+
             if (i >= getRowSize()) {
                 throw new NoSuchElementException();
             } else {
@@ -320,9 +341,11 @@ public class DataTable {
         if (rowObjs == null || rowObjs.length == 0) {
             throw new Exception("DataTable初始化对象数组不能为Null或者length为0");
         }
+
         if (rowObjs.length != this.rows.get(0).length) {
             throw new Exception("新插入的对象数组必须等于数据表DataTable的rows的长度");
         }
+
         this.rows.add(rowObjs);
     }
 
@@ -335,13 +358,16 @@ public class DataTable {
         if (rowObjs != null && rowObjs.size() == 0) {
             throw new Exception("加入的行对象不能为空或者size为0");
         }
+
         if (rowObjs.size() != this.rows.get(0).length) {
             throw new Exception("新插入的对象数组必须等于数据表DataTable的rows的长度");
         }
+
         Object[] addedRow = new Object[rowObjs.size()];
         for (int i = 0, length = addedRow.length; i < length; i++) {
             addedRow[i] = rowObjs.get(i);
         }
+
         this.rows.add(addedRow);
     }
 
@@ -364,6 +390,7 @@ public class DataTable {
         int columnSize = this.columns.size();
         int rowSize = this.rows.size();
         Object[][] dataArr = new Object[rowSize][columnSize];
+
         for (int i = 0; i < columnSize; i++) {
             Object[] theRow = this.rows.get(i);
             for (int j = 0; j < rowSize; j++) {
@@ -374,7 +401,9 @@ public class DataTable {
                 }
             }
         }
+
         this.rows = new ArrayList<>(dataArr.length);
+
         if (dataArr.length > 0) {
             for (int k = 0; k < dataArr.length; k++) {
                 this.rows.add(dataArr[k]);
@@ -398,13 +427,16 @@ public class DataTable {
     public List<Object[]> removeRowFromStartToEnd(int Start, int End) {
         List<Object[]> theRows = new ArrayList<>();
         int rowSize = this.getRowSize();
+
         if (Start >= rowSize
                 || End >= rowSize) {
             throw new ArrayIndexOutOfBoundsException("start,end不能超过row的size");
         }
+
         for (int i = Start, j = Start; i < End; i++) {
             theRows.add(this.rows.remove(j));
         }
+
         return theRows;
     }
 
@@ -417,13 +449,16 @@ public class DataTable {
             throws Exception {
         int rowSize = this.getRowSize();
         List<T> beanList = new ArrayList<>(rowSize);
+
         for (int i = 0; i < rowSize; i++) {
             T t = beanClass.newInstance();
             Field[] fields = t.getClass().getDeclaredFields();
+
             for (int j = 0; j < fields.length; j++) {
                 fields[j].setAccessible(true);
                 String rowName = fields[j].getName();
                 Object value;
+
                 try {
                     value = getObjectByColumnNameInRow(rowName, i);
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -431,10 +466,13 @@ public class DataTable {
                     System.err.println("DataTable中没有" + rowName + "列");
                     continue;
                 }
+
                 fields[j].set(t, value);
             }
+
             beanList.add(t);
         }
+
         return beanList;
     }
 
@@ -446,8 +484,10 @@ public class DataTable {
     public Object[] getObjectsByColumnName(String rowName) {
         int size = this.getRowSize();
         Object[] values = new Object[size];
+
         for (int i = 0; i < size; i++) {
             Object value;
+
             try {
                 value = getObjectByColumnNameInRow(rowName, i);
             } catch (ArrayIndexOutOfBoundsException e) {
@@ -455,8 +495,10 @@ public class DataTable {
                 e.printStackTrace();
                 break;
             }
+
             values[i] = value;
         }
+
         return values;
     }
 
@@ -469,6 +511,7 @@ public class DataTable {
     public Object getObjectByColumnNameInRow(String rowName, int index) {
         Object[] valuesOfRowAtIndex = this.getRowAtIndex(index);
         int indexOfColumnName = getIndexOfColumnNameInColumn(rowName);
+
         return valuesOfRowAtIndex[indexOfColumnName];
     }
 
@@ -492,11 +535,14 @@ public class DataTable {
             System.err.println("X值超过了dataTable中列名的size");
             return null;
         }
+
         if ((y + 1) > getRowSize()) {
             System.err.println("Y值超过了dataTable中数据的size");
             return null;
         }
+
         Object[] rows = getRowAtIndex(y);
+
         return rows[x];
     }
 }

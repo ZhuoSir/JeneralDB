@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Created by sunny-chen on 16/12/26.
+ * 负责根据数据库创建持久层代码的工厂类
+ *
+ * @author 陈卓
+ * @version 1.0.0
  */
 public class DBFactory {
 
@@ -39,6 +42,7 @@ public class DBFactory {
                 && Boolean.valueOf(getProperties().getProperty("autoCreateDir"))) {
             directory.mkdirs();
         }
+
         String[] allTableNames = getAllTableNamesOfDataBase();
         for (int i = 0; i < allTableNames.length; i++) {
             parseToJava(allTableNames[i], directory);
@@ -61,9 +65,11 @@ public class DBFactory {
         String sql = String.format(allTableNameSql, p.getProperty("db_name"), p.getProperty("db_type"));
         Object[] allTableNames = DBUtil.getInstance().queryDataTable(sql).getObjectsByColumnName("TABLE_NAME");
         String[] result = new String[allTableNames.length];
+
         for (int i = 0; i < allTableNames.length; i++) {
             result[i] = allTableNames[i].toString();
         }
+
         return result;
     }
 
@@ -75,9 +81,11 @@ public class DBFactory {
         String sql = String.format(allColumnNameSql, tableName);
         Object[] allColumnNames = DBUtil.getInstance().queryDataTable(sql).getObjectsByColumnName("COLUMN_NAME");
         String[] result = new String[allColumnNames.length];
+
         for (int i = 0; i < result.length; i++) {
             result[i] = allColumnNames[i].toString();
         }
+
         return result;
     }
 
@@ -90,6 +98,7 @@ public class DBFactory {
             properties = new Properties();
             properties.load(DBFactory.class.getResourceAsStream("/JeneralDB-config.properties"));
         }
+
         return properties;
     }
 
