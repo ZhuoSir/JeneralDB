@@ -1,5 +1,6 @@
 package com.chen.JeneralDB;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
@@ -261,7 +262,77 @@ public class DataTable {
     }
 
     public String toString() {
-        return null;
+        DBUtil.print("DataTable内容输出：");
+
+        int columnSize = getColumnsSize();
+        List<String> column = getColumns();
+
+        StringBuffer table = new StringBuffer();
+        StringBuffer horizontaLine = new StringBuffer("-------------------");
+        StringBuffer verticalLine = new StringBuffer("|");
+        int strCapacity = 18;
+        String format = "%-" + strCapacity + "s";
+
+        addLine(table, horizontaLine, columnSize);
+        table.append(verticalLine);
+
+        for (int i = 0; i < columnSize; i++) {
+            table.append(String.format(format, column.get(i)));
+            table.append(verticalLine);
+        }
+
+        table.append("\n");
+        addLine(table, horizontaLine, columnSize);
+
+        int rowSize = this.getRowSize();
+        for (int i = 0; i < rowSize; i++) {
+            Object[] data = this.getRowAtIndex(i);
+            table.append(verticalLine);
+
+            for (int j = 0; j < data.length; j++) {
+
+                if (data[j] != null) {
+                    String dataStr = null;
+                    try {
+                        dataStr = checkCapacity(data[j].toString(), strCapacity);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    table.append(String.format(format, dataStr));
+//                    table.append(dataStr);
+                } else {
+                    table.append(String.format(format, "null"));
+                }
+
+                table.append(verticalLine);
+            }
+
+            table.append("\n");
+            addLine(table, horizontaLine, columnSize);
+        }
+
+        return table.toString();
+    }
+
+    private String checkCapacity(String str, int capacity)
+            throws Exception {
+//        int length = str.getBytes().length;
+
+        if (str.length() > capacity) {
+            return str.substring(0, capacity);
+        } else {
+            return str;
+        }
+    }
+
+    private void addLine(StringBuffer buffer,
+                         StringBuffer addBuffer,
+                         int number) {
+        for (int i = 0; i < number; i++) {
+            buffer.append(addBuffer);
+        }
+
+        buffer.append("\n");
     }
 
     public int getRowSize() {

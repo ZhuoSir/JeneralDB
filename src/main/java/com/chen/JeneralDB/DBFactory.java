@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.ResultSetMetaData;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -57,6 +58,22 @@ public class DBFactory {
     }
 
     /**
+     * 指定表生成实体类
+     *
+     * @param tableName 表名
+     */
+    public void GenOneEntityFromTable(String tableName)
+            throws Exception {
+        File directory = new File(getProperties().getProperty("packageOutPath"));
+        if (!directory.exists()
+                && Boolean.valueOf(getProperties().getProperty("autoCreateDir"))) {
+            directory.mkdirs();
+        }
+
+        parseToJava(tableName, directory.getAbsolutePath());
+    }
+
+    /**
      * 生成Java文件的主体类
      */
     private void parseToJava(String allTableName, String directory)
@@ -93,7 +110,7 @@ public class DBFactory {
 
         String content = parse(allTableName, columnNames, columnType, columnSize);
 
-        StringBuffer javaFilePath = new StringBuffer(getProperties().getProperty("packageOutPath"));
+        StringBuffer javaFilePath = new StringBuffer(directory);
         javaFilePath.append(File.separator);
         javaFilePath.append(initCap(allTableName));
         javaFilePath.append(".java");
@@ -117,7 +134,14 @@ public class DBFactory {
             buffer.append("import java.sql.*;\r\n");
         }
 
-        buffer.append("\r\n\r\npublic class " + initCap(allTableName) + " {\r\n");
+        buffer.append("/**\r\n");
+        buffer.append(" * created by JeneralDB at ");
+        buffer.append(new Date());
+        buffer.append("\r\n");
+        buffer.append(" */");
+        buffer.append("\r\n");
+
+        buffer.append("public class " + initCap(allTableName) + " {\r\n");
         buffer.append("\r\n");
         processAllAttrs(buffer, columnNames, columnType);
         processAllMethod(buffer, columnNames, columnType);
@@ -130,7 +154,7 @@ public class DBFactory {
         for (int i = 0; i < colnames.length; i++) {
             buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
                     colnames[i] + "){\r\n");
-            buffer.append("\tthis." + colnames[i] + " = " + colnames[i] + ";\r\n");
+            buffer.append("\t\tthis." + colnames[i] + " = " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
             buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "(){\r\n");
@@ -244,13 +268,5 @@ public class DBFactory {
         printWriter.flush();
         printWriter.close();
         DBUtil.print("成功创建实体类" + javaFile.getPath());
-    }
-
-    public static void main(String[] args) {
-        try {
-            DBFactory.getInstance().GenEntityFromDataBase();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
