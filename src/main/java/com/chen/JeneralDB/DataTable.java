@@ -1,9 +1,9 @@
 package com.chen.JeneralDB;
 
-import java.io.UnsupportedEncodingException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Created by sunny on 2016/11/29.
@@ -42,6 +42,24 @@ public class DataTable {
         }
 
         rows = new ArrayList<>();
+    }
+
+    /**
+     * 指定列名，以及对象矩阵构造；
+     *
+     * @param columnNames 列名数组；
+     */
+    public DataTable(ArrayList<String> columnNames) {
+        int size = columnNames.size();
+        if (columnNames != null && size > 0) {
+            this.columns = new ArrayList<>(size);
+
+            for (int i = 0; i < size; i++) {
+                this.columns.add(columnNames.get(i));
+            }
+        }
+
+        this.rows = new ArrayList<>(10);
     }
 
     /**
@@ -413,7 +431,7 @@ public class DataTable {
             throw new Exception("DataTable初始化对象数组不能为Null或者length为0");
         }
 
-        if (rowObjs.length != this.rows.get(0).length) {
+        if (!this.rows.isEmpty() && rowObjs.length != this.rows.get(0).length) {
             throw new Exception("新插入的对象数组必须等于数据表DataTable的rows的长度");
         }
 
@@ -615,5 +633,34 @@ public class DataTable {
         Object[] rows = getRowAtIndex(y);
 
         return rows[x];
+    }
+
+    /**
+     * DataTable过滤方法
+     *
+     * @param filter 过滤器接口
+     * @return 过滤结果DataTable
+     */
+    public DataTable filter(DataTableFilter filter) {
+        ArrayList<String> columns = this.getColumns();
+        DataTable dataTable = new DataTable(columns);
+
+        for (int i = 0; i < this.getRowSize(); i++) {
+            Object[] row = getRowAtIndex(i);
+
+            if (filter.accept(columns, row)) {
+                try {
+                    dataTable.addSingleRow(row);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return dataTable;
+    }
+
+    public String toJSON() {
+        return null;
     }
 }

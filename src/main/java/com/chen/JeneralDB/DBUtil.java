@@ -169,6 +169,7 @@ public class DBUtil {
                 }
                 lists.add(t);
             }
+
         } finally {
             if (null != resultSet)
                 resultSet.close();
@@ -272,9 +273,9 @@ public class DBUtil {
 
     public int execute(String sql)
             throws Exception {
-        int result;
-
         checkConnect();
+
+        int result;
 
         Statement statement = conn.createStatement();
         print("执行sql: " + sql);
@@ -291,9 +292,9 @@ public class DBUtil {
 
     public int execute(String sql, Object... params)
             throws Exception {
-        int result;
-
         checkConnect();
+
+        int result;
 
         PreparedStatement preStmt = conn.prepareStatement(sql);
         for (int i = 0; i < params.length; i++) {
@@ -318,9 +319,9 @@ public class DBUtil {
 
 
     public int[] executeAsBatch(Connection conn, String[] sqlArray) throws Exception {
-        int[] result;
-
         checkConnect();
+
+        int[] result;
 
         Statement stmt = conn.createStatement();
 
