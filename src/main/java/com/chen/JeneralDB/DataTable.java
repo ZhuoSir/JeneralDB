@@ -263,7 +263,6 @@ public class DataTable {
 
     public String toString() {
         DBUtil.print("DataTable内容输出：");
-
         int columnSize = getColumnsSize();
         List<String> column = getColumns();
 
@@ -293,13 +292,14 @@ public class DataTable {
 
                 if (data[j] != null) {
                     String dataStr = null;
+
                     try {
                         dataStr = checkCapacity(data[j].toString(), strCapacity);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
                     table.append(String.format(format, dataStr));
-//                    table.append(dataStr);
                 } else {
                     table.append(String.format(format, "null"));
                 }

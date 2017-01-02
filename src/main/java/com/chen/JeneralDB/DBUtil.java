@@ -126,7 +126,8 @@ public class DBUtil {
         while (rs.next()) {
             Map<String, Object> map = new HashMap<>();
             for (int i = 0; i < columnCount; i++) {
-                String name = metaData.getColumnName(i + 1);
+                String name = metaData.getColumnLabel(i + 1);
+//                String name = metaData.getColumnClassName(i + 1);
                 Object value = rs.getObject(name);
                 map.put(name, value);
             }
