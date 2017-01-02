@@ -19,7 +19,7 @@ public class DBFactory {
 
     private static DBFactory dbFactory;
 
-    private static String allTableNameSql = "select table_name from information_schema.tables " +
+    private static String allTableNameSql = "select TABLE_NAME from information_schema.tables " +
             "where table_schema='%s' and table_type='%s';";
 
     private static String allColumnNameSql = "select column_name from information_schema.columns where table_name='%s' " +
