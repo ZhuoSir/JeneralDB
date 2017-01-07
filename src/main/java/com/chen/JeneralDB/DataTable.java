@@ -279,7 +279,7 @@ public class DataTable {
         return cloneObject;
     }
 
-    public String toString() {
+    public void print() {
         DBUtil.print("DataTable内容输出：");
         int columnSize = getColumnsSize();
         List<String> column = getColumns();
@@ -329,7 +329,7 @@ public class DataTable {
             addLine(table, horizontaLine, columnSize);
         }
 
-        return table.toString();
+        System.out.println(table.toString());
     }
 
     private String checkCapacity(String str, int capacity)

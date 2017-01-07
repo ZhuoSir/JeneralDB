@@ -43,7 +43,7 @@ public class DBFactory {
     /**
      * 根据数据库生成实体类
      */
-    public void GenEntityFromDataBase()
+    public void createEntityFromDataBase()
             throws Exception {
         File directory = new File(getProperties().getProperty("packageOutPath"));
         if (!directory.exists()
@@ -62,7 +62,7 @@ public class DBFactory {
      *
      * @param tableName 表名
      */
-    public void GenOneEntityFromTable(String tableName)
+    public void createOneEntityFromTable(String tableName)
             throws Exception {
         File directory = new File(getProperties().getProperty("packageOutPath"));
         if (!directory.exists()
@@ -127,11 +127,11 @@ public class DBFactory {
         buffer.append("\r\n");
 
         if (utilPack) {
-            buffer.append("import java.util.Date;\r\n");
+            buffer.append("import java.util.Date;\r\n\r\n");
         }
 
         if (sqlPack) {
-            buffer.append("import java.sql.*;\r\n");
+            buffer.append("import java.sql.*;\r\n\r\n");
         }
 
         buffer.append("/**\r\n");
@@ -153,11 +153,11 @@ public class DBFactory {
     private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
         for (int i = 0; i < colnames.length; i++) {
             buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
-                    colnames[i] + "){\r\n");
+                    colnames[i] + ") {\r\n");
             buffer.append("\t\tthis." + colnames[i] + " = " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
-            buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "(){\r\n");
+            buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "() {\r\n");
             buffer.append("\t\treturn " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
