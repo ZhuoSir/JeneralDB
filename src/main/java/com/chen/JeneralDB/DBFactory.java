@@ -143,11 +143,37 @@ public class DBFactory {
 
         buffer.append("public class " + initCap(allTableName) + " {\r\n");
         buffer.append("\r\n");
+
         processAllAttrs(buffer, columnNames, columnType);
+
         processAllMethod(buffer, columnNames, columnType);
+
+        processToString(buffer, columnNames, columnType);
+
         buffer.append("}\r\n");
 
         return buffer.toString();
+    }
+
+    private void processToString(StringBuffer buffer, String[] columnNames, String[] columnType) {
+        buffer.append("\tpublic String toString() {\n");
+        buffer.append("\t\tStringBuffer string = new StringBuffer();\n");
+
+        for (int i = 0; i < columnNames.length; i++) {
+            buffer.append("\t\tstring.append(\"");
+            buffer.append(columnNames[i]);
+            buffer.append(" = \");\n");
+            buffer.append("\t\tstring.append(");
+            buffer.append("this.");
+            buffer.append(columnNames[i]);
+            buffer.append(");\n");
+            buffer.append("\t\tstring.append(");
+            buffer.append("\";\"");
+            buffer.append(");\n");
+        }
+
+        buffer.append("\t\treturn string.toString();\n");
+        buffer.append("\t}\n");
     }
 
     private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
