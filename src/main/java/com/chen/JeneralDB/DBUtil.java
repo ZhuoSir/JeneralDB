@@ -20,7 +20,6 @@ public class DBUtil {
 
     private static boolean AutoCommit = true;
 
-
     private DBUtil() {
     }
 
@@ -254,7 +253,7 @@ public class DBUtil {
         List<Map<String, Object>> list = queryMapList(sql);
         DataTable dataTable = null;
 
-        if (list != null && !list.isEmpty()) {
+        if (null != list && !list.isEmpty()) {
             dataTable = new DataTable(list);
         }
 

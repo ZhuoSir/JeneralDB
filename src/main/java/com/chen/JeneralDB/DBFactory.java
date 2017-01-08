@@ -32,6 +32,7 @@ public class DBFactory {
     private DBFactory() {
     }
 
+
     public static synchronized DBFactory getInstance() {
         if (null == dbFactory) {
             dbFactory = new DBFactory();
@@ -39,6 +40,7 @@ public class DBFactory {
 
         return dbFactory;
     }
+
 
     /**
      * 根据数据库生成实体类
@@ -57,6 +59,7 @@ public class DBFactory {
         }
     }
 
+
     /**
      * 指定表生成实体类
      *
@@ -72,6 +75,7 @@ public class DBFactory {
 
         parseToJava(tableName, directory.getAbsolutePath());
     }
+
 
     /**
      * 生成Java文件的主体类
@@ -112,11 +116,12 @@ public class DBFactory {
 
         StringBuffer javaFilePath = new StringBuffer(directory);
         javaFilePath.append(File.separator);
-        javaFilePath.append(initCap(allTableName));
+        javaFilePath.append(formatClassName(allTableName));
         javaFilePath.append(".java");
 
         writeToJavaFile(content, javaFilePath.toString());
     }
+
 
     private String parse(String allTableName, String[] columnNames, String[] columnType, int[] columnSize)
             throws IOException {
@@ -141,7 +146,7 @@ public class DBFactory {
         buffer.append(" */");
         buffer.append("\r\n");
 
-        buffer.append("public class " + initCap(allTableName) + " {\r\n");
+        buffer.append("public class " + formatClassName(allTableName) + " {\r\n");
         buffer.append("\r\n");
 
         processAllAttrs(buffer, columnNames, columnType);
@@ -154,6 +159,7 @@ public class DBFactory {
 
         return buffer.toString();
     }
+
 
     private void processToString(StringBuffer buffer, String[] columnNames, String[] columnType) {
         buffer.append("\tpublic String toString() {\n");
@@ -176,6 +182,7 @@ public class DBFactory {
         buffer.append("\t}\n");
     }
 
+
     private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
         for (int i = 0; i < colnames.length; i++) {
             buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
@@ -190,6 +197,7 @@ public class DBFactory {
         }
     }
 
+
     private void processAllAttrs(StringBuffer buffer, String[] columnNames, String[] columnTypes) {
         for (int i = 0; i < columnNames.length; i++) {
             buffer.append("\tprivate ");
@@ -200,6 +208,7 @@ public class DBFactory {
             buffer.append("\r\n");
         }
     }
+
 
     private String sqlType2JavaType(String sqlType) {
         if (sqlType.equalsIgnoreCase("bit")) {
@@ -230,19 +239,45 @@ public class DBFactory {
         return null;
     }
 
+
+    private String formatClassName(String allTableName) {
+        if (null == allTableName || allTableName.isEmpty()) {
+            return allTableName;
+        }
+
+        allTableName = initCap(allTableName);
+        if (allTableName.contains("_")) {
+            char[] array = allTableName.toCharArray();
+
+            for (int i = 0; i < array.length; i++) {
+                if (array[i] == '_') {
+                    array[i + 1] = Character.toUpperCase(array[i + 1]);
+                }
+            }
+
+            allTableName = new String(array);
+            allTableName = allTableName.replaceAll("[_]", "");
+        }
+
+        return allTableName;
+    }
+
+
+
+
     private String initCap(String allTableName) {
         if (null == allTableName || allTableName.isEmpty()) {
             return allTableName;
         }
 
         char[] ch = allTableName.toCharArray();
-
-        if (ch[0] >= 'a' && ch[0] <= 'z') {
-            ch[0] = (char) (ch[0] - 32);
+        if (Character.isLowerCase(ch[0])) {
+            ch[0] = Character.toUpperCase(ch[0]);
         }
 
         return new String(ch);
     }
+
 
     /**
      * 获取所有数据库中的所有表名
@@ -261,6 +296,7 @@ public class DBFactory {
         return result;
     }
 
+
     /**
      * 获取相应的配置文件信息
      */
@@ -273,6 +309,7 @@ public class DBFactory {
 
         return properties;
     }
+
 
     /**
      * 将字符串写进java文件，如果没有文件创建之

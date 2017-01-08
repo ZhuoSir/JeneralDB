@@ -1,7 +1,5 @@
 package com.chen.JeneralDB;
 
-import org.json.JSONObject;
-
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -279,6 +277,10 @@ public class DataTable {
         return cloneObject;
     }
 
+    public String toJSON() {
+        return null;
+    }
+
     public void print() {
         DBUtil.print("DataTable内容输出：");
         int columnSize = getColumnsSize();
@@ -334,8 +336,6 @@ public class DataTable {
 
     private String checkCapacity(String str, int capacity)
             throws Exception {
-//        int length = str.getBytes().length;
-
         if (str.length() > capacity) {
             return str.substring(0, capacity);
         } else {
@@ -658,9 +658,5 @@ public class DataTable {
         }
 
         return dataTable;
-    }
-
-    public String toJSON() {
-        return null;
     }
 }
