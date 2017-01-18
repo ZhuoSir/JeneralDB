@@ -1,4 +1,6 @@
-package com.chen.JeneralDB;
+package com.chen.JeneralDB.solution;
+
+import com.chen.JeneralDB.jdbc.FieldDefinition;
 
 import java.sql.SQLException;
 import java.util.List;

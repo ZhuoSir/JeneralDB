@@ -322,7 +322,7 @@ public class DBFactory {
     /**
      * 获取相应的配置文件信息
      */
-    private static Properties getProperties()
+    public static Properties getProperties()
             throws IOException {
         if (null == properties) {
             properties = new Properties();
@@ -336,7 +336,7 @@ public class DBFactory {
     /**
      * 获取配置文件中的基本属性
      */
-    private static String getProperty(String key)
+    public static String getProperty(String key)
             throws IOException {
         return getProperties().getProperty(key);
     }

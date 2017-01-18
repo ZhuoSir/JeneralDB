@@ -1,4 +1,4 @@
-package com.chen.JeneralDB;
+package com.chen.JeneralDB.cache;
 
 import java.util.*;
 
@@ -15,7 +15,7 @@ public class CacheManager {
     }
 
 
-    private static synchronized CacheManager newInstance() {
+    public static synchronized CacheManager newInstance() {
         if (null == cacheManager) {
             cacheManager = new CacheManager();
         }
