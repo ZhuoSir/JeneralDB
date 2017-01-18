@@ -49,6 +49,7 @@ public class DBUtil {
     }
 
 
+
     public void closeConnection() throws SQLException {
         try {
             if (null != conn) {
@@ -541,8 +542,7 @@ public class DBUtil {
      *
      * @throws Exception
      */
-    public void checkConnect()
-            throws Exception {
+    public void checkConnect() throws Exception {
         if (null == conn || conn.isClosed()) {
             conn = openConnection();
         }

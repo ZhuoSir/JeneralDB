@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.ResultSetMetaData;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -19,10 +22,10 @@ public class DBFactory {
 
     private static DBFactory dbFactory;
 
-    private static String allTableNameSql = "select TABLE_NAME from information_schema.tables " +
+    private static final String allTableNameSql = "select TABLE_NAME from information_schema.tables " +
             "where table_schema='%s' and table_type='%s';";
 
-    private static String allColumnNameSql = "select column_name from information_schema.columns where table_name='%s' " +
+    private static final String allColumnNameSql = "select column_name from information_schema.columns where table_name='%s' " +
             "order by table_schema,table_name";
 
     private boolean utilPack = false;
@@ -47,16 +50,9 @@ public class DBFactory {
      */
     public void createEntityFromDataBase()
             throws Exception {
-        File directory = new File(getProperties().getProperty("packageOutPath"));
-        if (!directory.exists()
-                && Boolean.valueOf(getProperties().getProperty("autoCreateDir"))) {
-            directory.mkdirs();
-        }
+        List<String> allTableNames = Arrays.asList(getAllTableNamesOfDataBase());
 
-        String[] allTableNames = getAllTableNamesOfDataBase();
-        for (int i = 0; i < allTableNames.length; i++) {
-            parseToJava(allTableNames[i], directory.getAbsolutePath());
-        }
+        createEntitysByTableNames(allTableNames);
     }
 
 
@@ -65,22 +61,44 @@ public class DBFactory {
      *
      * @param tableName 表名
      */
-    public void createOneEntityFromTable(String tableName)
+    public void createEntitysByTableNames(List<String> tableNames)
             throws Exception {
-        File directory = new File(getProperties().getProperty("packageOutPath"));
+        createEntitysByTableNames(tableNames, null, null);
+    }
+
+
+    /**
+     * 指定表生成实体类到指定文件夹
+     *
+     * @param tableNames    表名
+     * @param directoryPath 文件夹名
+     */
+    public void createEntitysByTableNames(List<String> tableNames, String directoryPath, String packageName)
+            throws Exception {
+        if (null == directoryPath) {
+            directoryPath = getProperties().getProperty("packageOutPath");
+        }
+
+        if (null == packageName) {
+            packageName = getProperties().getProperty("packageSimplepath");
+        }
+
+        File directory = new File(directoryPath);
         if (!directory.exists()
                 && Boolean.valueOf(getProperties().getProperty("autoCreateDir"))) {
             directory.mkdirs();
         }
 
-        parseToJava(tableName, directory.getAbsolutePath());
+        for (String tableName : tableNames) {
+            parseToJava(tableName, directory.getAbsolutePath(), packageName);
+        }
     }
 
 
     /**
      * 生成Java文件的主体类
      */
-    private void parseToJava(String allTableName, String directory)
+    private void parseToJava(String allTableName, String directory, String packageName)
             throws Exception {
         if (null == allTableName || allTableName.isEmpty() || null == directory) {
             throw new NullPointerException();
@@ -112,7 +130,7 @@ public class DBFactory {
             }
         }
 
-        String content = parse(allTableName, columnNames, columnType, columnSize);
+        String content = parse(allTableName, packageName, columnNames, columnType);
 
         StringBuffer javaFilePath = new StringBuffer(directory);
         javaFilePath.append(File.separator);
@@ -123,11 +141,11 @@ public class DBFactory {
     }
 
 
-    private String parse(String allTableName, String[] columnNames, String[] columnType, int[] columnSize)
+    private String parse(String allTableName, String packageName, String[] columnNames, String[] columnType)
             throws IOException {
         StringBuffer buffer = new StringBuffer();
 
-        buffer.append("package " + getProperties().getProperty("packageSimplepath") + ";");
+        buffer.append("package " + packageName + ";");
         buffer.append("\r\n");
         buffer.append("\r\n");
 
@@ -141,7 +159,7 @@ public class DBFactory {
 
         buffer.append("/**\r\n");
         buffer.append(" * created by JeneralDB at ");
-        buffer.append(new Date());
+        buffer.append(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
         buffer.append("\r\n");
         buffer.append(" */");
         buffer.append("\r\n");
@@ -304,7 +322,7 @@ public class DBFactory {
     /**
      * 获取相应的配置文件信息
      */
-    private Properties getProperties()
+    private static Properties getProperties()
             throws IOException {
         if (null == properties) {
             properties = new Properties();
@@ -312,6 +330,15 @@ public class DBFactory {
         }
 
         return properties;
+    }
+
+
+    /**
+     * 获取配置文件中的基本属性
+     */
+    private static String getProperty(String key)
+            throws IOException {
+        return getProperties().getProperty(key);
     }
 
 
