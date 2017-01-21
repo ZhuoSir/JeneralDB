@@ -24,12 +24,12 @@ public final class JdbcRepository<T> implements Repository<T> {
     private Transaction transaction;
 
     @Override
-    public String add(T t) throws Exception {
+    public int add(T t) throws Exception {
         transaction = beginTransaction();
 
         final Connection connection = Connections.getConnection();
 
-        return null;
+        return 0;
     }
 
     @Override

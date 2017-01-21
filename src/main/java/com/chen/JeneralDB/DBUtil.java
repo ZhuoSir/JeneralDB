@@ -291,6 +291,23 @@ public class DBUtil {
     }
 
 
+    public int execute(String sql, Connection conn) throws SQLException {
+        if (null == conn || conn.isClosed()) {
+            throw new SQLException();
+        }
+
+        int result;
+
+        Statement statement = conn.createStatement();
+        print("执行sql: " + sql);
+        result = statement.executeUpdate(sql);
+
+        statement.close();
+
+        return result;
+    }
+
+
     public int execute(String sql, Object... params)
             throws Exception {
         checkConnect();
@@ -376,48 +393,7 @@ public class DBUtil {
             throw new NullPointerException("保存对象不能为Null");
         }
 
-        StringBuilder columns = new StringBuilder(" insert into ");
-        StringBuilder values = new StringBuilder(" ) values (");
-
-        Class<?> t = obj.getClass();
-        String tableName = t.getSimpleName();
-        Field[] fields = t.getDeclaredFields();
-        columns.append(tableName);
-        columns.append(" ( ");
-
-        int size = fields.length, columnNum = 0;
-        for (Field field : fields) {
-            field.setAccessible(true);
-            String columnName = field.getName();
-            String columnType = field.getType().getTypeName();
-            Object value = field.get(obj);
-
-            if (null == value) {
-                continue;
-            }
-
-            columns.append(columnName);
-
-            addValueToValues(values, columnName, columnType, value);
-
-            if (columnNum++ < size - 1) {
-                columns.append(" ,");
-                values.append(" ,");
-            }
-        }
-
-        if (columns.charAt(columns.length() - 1) == ',') {
-            columns = columns.deleteCharAt(columns.length() - 1);
-        }
-
-        if (values.charAt(values.length() - 1) == ',') {
-            values = values.deleteCharAt(values.length() - 1);
-        }
-
-        values.append(" ) ");
-        columns.append(values);
-
-        return this.execute(columns.toString());
+        return this.execute(buildInsertSql(obj));
     }
 
 
@@ -426,12 +402,42 @@ public class DBUtil {
             throw new NullPointerException("保存对象不能为Null");
         }
 
+        return this.execute(buildInsertSql(obj, tableName));
+    }
+
+
+    public int save(Connection conn, Object obj) throws Exception {
+        if (null == obj) {
+            throw new NullPointerException("保存对象不能为Null");
+        }
+
+        return this.execute(buildInsertSql(obj), conn);
+    }
+
+
+    public int save(Connection conn, Object obj, String tableName) throws Exception {
+        if (null == obj) {
+            throw new NullPointerException("保存对象不能为Null");
+        }
+
+        return this.execute(buildInsertSql(obj, tableName), conn);
+    }
+
+
+    public String buildInsertSql(Object obj)
+            throws IllegalAccessException {
+        return buildInsertSql(obj, null);
+    }
+
+
+    public String buildInsertSql(Object obj, String tableName)
+            throws IllegalAccessException {
         StringBuilder columns = new StringBuilder(" insert into ");
         StringBuilder values = new StringBuilder(" ) values (");
 
         Class<?> t = obj.getClass();
         Field[] fields = t.getDeclaredFields();
-        columns.append(tableName);
+        columns.append(null == tableName ? t.getSimpleName() : tableName);
         columns.append(" ( ");
 
         int size = fields.length, columnNum = 0;
@@ -466,7 +472,7 @@ public class DBUtil {
         values.append(" ) ");
         columns.append(values);
 
-        return this.execute(columns.toString());
+        return columns.toString();
     }
 
 

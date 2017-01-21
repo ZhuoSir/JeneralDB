@@ -70,10 +70,10 @@ public final class Connections {
                     DBUtil.print("Do not use database connection pool");
                 }
 
-                DBUtil.print("Can not initialize database connection");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            DBUtil.print("Can not initialize database connection");
         }
     }
 

@@ -50,7 +50,7 @@ public abstract class AbstractRepository<T> implements Repository<T> {
     }
 
     @Override
-    public String add(T t) throws Exception {
+    public int add(T t) throws Exception {
         if (!isWriteAble()) {
             throw new RespositoryException("The repository[name = " + getName() + "] is not writeable at present");
         }

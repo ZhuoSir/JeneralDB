@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public interface Repository<T> {
 
-    String add(final T t) throws Exception;
+    int add(final T t) throws Exception;
 
     void update(final String id, T t) throws RespositoryException;
 
