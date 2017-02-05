@@ -237,7 +237,7 @@ public class DBFactory {
             return "short";
         } else if (sqlType.equalsIgnoreCase("int") || sqlType.equalsIgnoreCase("integer")) {
             return "int";
-        } else if (sqlType.equalsIgnoreCase("bigint")) {
+        } else if (sqlType.equalsIgnoreCase("bigint") || sqlType.equalsIgnoreCase("unsigned int")) {
             return "long";
         } else if (sqlType.equalsIgnoreCase("float")) {
             return "float";
