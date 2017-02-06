@@ -80,7 +80,7 @@ public class DBUtil {
                 rs.close();
             if (null != stmt)
                 stmt.close();
-            if (null != conn && !AutoCommit)
+            if (null != conn && AutoCommit)
                 conn.close();
         }
 
@@ -111,7 +111,7 @@ public class DBUtil {
                 rs.close();
             if (null != statement)
                 statement.close();
-            if (null != conn && !AutoCommit)
+            if (null != conn && AutoCommit)
                 conn.close();
         }
 
