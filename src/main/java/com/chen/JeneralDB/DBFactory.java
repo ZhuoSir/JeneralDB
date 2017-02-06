@@ -59,7 +59,7 @@ public class DBFactory {
     /**
      * 指定表生成实体类
      *
-     * @param tableName 表名
+     * @param tableNames 表名
      */
     public void createEntitysByTableNames(List<String> tableNames)
             throws Exception {
@@ -304,7 +304,7 @@ public class DBFactory {
     /**
      * 获取所有数据库中的所有表名
      */
-    private String[] getAllTableNamesOfDataBase()
+    public String[] getAllTableNamesOfDataBase()
             throws Exception {
         Properties p = getProperties();
         String sql = String.format(allTableNameSql, p.getProperty("db_name"), p.getProperty("db_type"));
@@ -316,6 +316,42 @@ public class DBFactory {
         }
 
         return result;
+    }
+
+
+    public DataTable getAllPKOfTable(String tableName)
+            throws Exception {
+        Properties p = getProperties();
+        DataTable dt = null;
+        String sql = " SELECT\n" +
+                "  t.TABLE_NAME,\n" +
+                "  t.CONSTRAINT_TYPE,\n" +
+                "  c.COLUMN_NAME,\n" +
+                "  c.ORDINAL_POSITION\n" +
+                " FROM\n" +
+                "  INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS t,\n" +
+                "  INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS c\n" +
+                " WHERE\n" +
+                "  t.TABLE_NAME = c.TABLE_NAME\n" +
+                "  AND t.TABLE_SCHEMA = '" + p.getProperty("db_name") + "'\n" +
+                "  AND t.CONSTRAINT_TYPE = 'PRIMARY KEY'" +
+                "  AND t.TABLE_NAME = '" + tableName + "'";
+
+        return DBUtil.getInstance().queryDataTable(sql);
+    }
+
+
+    public String[] getAllPkNamesOfTable(String tableName)
+            throws Exception {
+        DataTable dt = getAllPKOfTable(tableName);
+        Object[] objs = dt.getObjectsByColumnName("COLUMN_NAME");
+
+        String[] ret = new String[objs.length];
+        for (int i = 0; i < objs.length; i++) {
+            ret[i] = objs[i].toString();
+        }
+
+        return ret;
     }
 
 

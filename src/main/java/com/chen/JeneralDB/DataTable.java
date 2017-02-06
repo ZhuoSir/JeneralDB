@@ -141,7 +141,7 @@ public class DataTable {
             Map<String, Object> temp = list.get(0);
             Set<String> key = temp.keySet();
             colArr = new String[key.size()];
-            java.util.Iterator<String> iterator = key.iterator();
+            Iterator<String> iterator = key.iterator();
             int i = 0;
             while (iterator.hasNext()) {
                 colArr[i] = iterator.next();
