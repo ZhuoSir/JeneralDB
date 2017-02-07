@@ -64,17 +64,21 @@ public final class SqlBuilder {
 
 
     private static void addValueToValues(StringBuilder values, String columnName, String columnType, Object value) {
-        if ("java.lang.Boolean".equals(columnType)) {
-            values.append(value.toString());
-        } else if ("java.util.Date".equals(columnType)) {
-            SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-            values.append("'");
-            values.append(ft.format(value));
-            values.append("'");
+        if (null == value) {
+            values.append("null");
         } else {
-            values.append("'");
-            values.append(value.toString());
-            values.append("'");
+            if ("java.lang.Boolean".equals(columnType)) {
+                values.append(value.toString());
+            } else if ("java.util.Date".equals(columnType)) {
+                SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                values.append("'");
+                values.append(ft.format(value));
+                values.append("'");
+            } else {
+                values.append("'");
+                values.append(value.toString());
+                values.append("'");
+            }
         }
     }
 
@@ -95,8 +99,8 @@ public final class SqlBuilder {
             Field field = fields[i];
             String columnName = field.getName();
             String columnType = field.getType().getTypeName();
-            Object value = field.get(obj);
             field.setAccessible(true);
+            Object value = field.get(obj);
 
             if (i == 0) {
                 update.append(" set ");
