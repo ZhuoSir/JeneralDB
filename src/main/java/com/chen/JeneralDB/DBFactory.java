@@ -322,7 +322,6 @@ public class DBFactory {
     public DataTable getAllPKOfTable(String tableName)
             throws Exception {
         Properties p = getProperties();
-        DataTable dt = null;
         String sql = " SELECT\n" +
                 "  t.TABLE_NAME,\n" +
                 "  t.CONSTRAINT_TYPE,\n" +

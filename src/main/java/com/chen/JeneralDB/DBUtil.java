@@ -6,6 +6,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
+import static com.chen.JeneralDB.SqlBuilder.buildDeleteSql;
 import static com.chen.JeneralDB.SqlBuilder.buildInsertSql;
 import static com.chen.JeneralDB.SqlBuilder.buildUpdateSql;
 
@@ -443,12 +444,41 @@ public class DBUtil {
     }
 
 
-    public int update(Connection conn, Object obj, String tableName) throws Exception {
+    public int update(Connection conn, Object obj, String tableName)
+            throws Exception {
         if (null == obj) {
             throw new NullPointerException("更新对象不能为Null");
         }
 
         return this.execute(buildUpdateSql(obj, tableName), conn);
+    }
+
+
+    public int delete(Object obj) throws Exception {
+        if (null == obj) {
+            throw new NullPointerException("删除对象不能为Null");
+        }
+
+        return this.execute(buildDeleteSql(obj));
+    }
+
+
+    public int delete(Object obj, String tableName) throws Exception {
+        if (null == obj) {
+            throw new NullPointerException("删除对象不能为Null");
+        }
+
+        return this.execute(buildDeleteSql(obj, tableName));
+    }
+
+
+    public int delete(Connection conn, Object obj, String tableName)
+            throws Exception {
+        if (null == obj) {
+            throw new NullPointerException("删除的对象不能为Null");
+        }
+
+        return this.execute(buildDeleteSql(obj, tableName), conn);
     }
 
 
