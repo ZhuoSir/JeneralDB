@@ -1,14 +1,14 @@
 package com.chen.JeneralDB;
 
 
+import com.chen.JeneralDB.jdbc.Query;
+
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
 
-import static com.chen.JeneralDB.SqlBuilder.buildDeleteSql;
-import static com.chen.JeneralDB.SqlBuilder.buildInsertSql;
-import static com.chen.JeneralDB.SqlBuilder.buildUpdateSql;
+import static com.chen.JeneralDB.SqlBuilder.*;
 
 /**
  * 数据库操作工具类
@@ -262,6 +262,19 @@ public class DBUtil {
         }
 
         return dataTable;
+    }
+
+
+    public <T> List<T> queryBeanListByQuery(Query query, Class<T> beanClass)
+            throws Exception {
+        String tableName = beanClass.getSimpleName();
+        return queryByQuery(tableName, query).toBeanList(beanClass);
+    }
+
+    public DataTable queryByQuery(String tableName, Query query)
+            throws Exception {
+        String sql = buildSelectSqlByQuery(tableName, query);
+        return queryDataTable(sql);
     }
 
 
