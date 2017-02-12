@@ -1,7 +1,13 @@
 package com.chen.JeneralDB;
 
+import com.chen.JeneralDB.jdbc.Query;
+import com.chen.JeneralDB.jdbc.SortDirection;
+
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 常用sql语句生成器
@@ -162,5 +168,233 @@ public final class SqlBuilder {
         }
 
         return delete.toString();
+    }
+
+    public static String buildSelectSqlByQuery(String tableName, Query query) {
+        if (null == query || query.isEmpty()
+                || null == tableName || "".equals(tableName)) {
+            return null;
+        }
+
+        StringBuilder sql = new StringBuilder("select * from " + tableName + " where ");
+        boolean isNotFirst = false;
+        boolean hasJudege = false;
+        Iterator iterator = null;
+
+        if (null != query.getEquals() && !query.getEquals().isEmpty()) {
+            hasJudege = true;
+            Map<String, String> eq = query.getEquals();
+            Set set = eq.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                String val = eq.get(key);
+                sql.append(key + " = " + val);
+            }
+        }
+
+        if (null != query.getNotEquals() && !query.getNotEquals().isEmpty()) {
+            hasJudege = true;
+            Map<String, String> neq = query.getNotEquals();
+            Set set = neq.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                String val = neq.get(key);
+                sql.append(key + " != " + val);
+            }
+        }
+
+        if (null != query.getLikes() && !query.getLikes().isEmpty()) {
+            hasJudege = true;
+            Map<String, String> like = query.getLikes();
+            Set set = like.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                String val = like.get(key);
+                sql.append(key + " like '" + val + "'");
+            }
+        }
+
+        if (null != query.getNotLikes() && !query.getNotLikes().isEmpty()) {
+            hasJudege = true;
+            Map<String, String> notLikes = query.getNotLikes();
+            Set set = notLikes.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                String val = notLikes.get(key);
+                sql.append(key + " not like '" + val + "'");
+            }
+        }
+
+        if (null != query.getIn() && !query.getNotIn().isEmpty()) {
+            hasJudege = true;
+            Map<String, Object[]> In = query.getIn();
+            Set set = In.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                Object[] val = In.get(key);
+                sql.append(key + " in ( ");
+                for (int i = 0; i < val.length; i++) {
+                    if (i > 0) {
+                        sql.append(" , ");
+                    }
+
+                    sql.append(val[i].toString());
+                }
+                sql.append(" ) ");
+            }
+        }
+
+        if (null != query.getNotIn() && !query.getNotIn().isEmpty()) {
+            hasJudege = true;
+            Map<String, Object[]> notIn = query.getNotIn();
+            Set set = notIn.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                Object[] val = notIn.get(key);
+                sql.append(key + " not in ( ");
+                for (int i = 0; i < val.length; i++) {
+                    if (i > 0) {
+                        sql.append(" , ");
+                    }
+
+                    sql.append(val[i].toString());
+                }
+                sql.append(" ) ");
+            }
+        }
+
+        if (null != query.getBetweens() && !query.getBetweens().isEmpty()) {
+            hasJudege = true;
+            Map<String, Object[]> betweens = query.getBetweens();
+            Set set = betweens.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                Object[] val = betweens.get(key);
+                sql.append(key + " between ");
+                sql.append(val[0].toString());
+                sql.append(" and ");
+                sql.append(val[1].toString());
+            }
+        }
+
+        if (null != query.getNotBetwee() && !query.getNotBetwee().isEmpty()) {
+            hasJudege = true;
+            Map<String, Object[]> notBetwee = query.getNotBetwee();
+            Set set = notBetwee.keySet();
+
+            for (iterator = set.iterator(); iterator.hasNext(); ) {
+                if (isNotFirst) {
+                    sql.append(" and ");
+                } else {
+                    if (set.size() > 0) {
+                        isNotFirst = true;
+                    }
+                }
+
+                String key = (String) iterator.next();
+                Object[] val = notBetwee.get(key);
+                sql.append(key + " not between ");
+                sql.append(val[0].toString());
+                sql.append(" and ");
+                sql.append(val[1].toString());
+            }
+        }
+
+        if (null != query.getSorts() && !query.getSorts().isEmpty()) {
+            if (!hasJudege) {
+                String sql1 = sql.toString();
+                sql1 = sql1.replaceAll("where", "");
+                sql = new StringBuilder(sql1);
+            }
+
+            Map<String, SortDirection> sorts = query.getSorts();
+            Set set = sorts.keySet();
+
+            int i = 0;
+            for (iterator = set.iterator(); iterator.hasNext(); i++) {
+
+                String key = (String) iterator.next();
+                SortDirection direction = sorts.get(key);
+
+                if (i == 0) {
+                    sql.append(" order by ");
+                } else {
+                    sql.append(" , ");
+                }
+
+                sql.append(key);
+                if (direction.equals(SortDirection.ASCENDING)) {
+                    sql.append(" asc");
+                } else {
+                    sql.append(" desc");
+                }
+            }
+        }
+
+        sql.append(";");
+        return sql.toString();
     }
 }
