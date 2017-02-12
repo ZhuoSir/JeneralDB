@@ -271,6 +271,7 @@ public class DBUtil {
         return queryByQuery(tableName, query).toBeanList(beanClass);
     }
 
+
     public DataTable queryByQuery(String tableName, Query query)
             throws Exception {
         String sql = buildSelectSqlByQuery(tableName, query);
