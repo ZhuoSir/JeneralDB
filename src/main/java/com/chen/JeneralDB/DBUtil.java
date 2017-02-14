@@ -275,7 +275,11 @@ public class DBUtil {
     public DataTable queryByQuery(String tableName, Query query)
             throws Exception {
         String sql = buildSelectSqlByQuery(tableName, query);
-        return queryDataTable(sql);
+        if (null != sql && !"".equals(sql)) {
+            return queryDataTable(sql);
+        }
+
+        return null;
     }
 
 

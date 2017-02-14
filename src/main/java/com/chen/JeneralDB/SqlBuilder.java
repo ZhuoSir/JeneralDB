@@ -337,10 +337,10 @@ public final class SqlBuilder {
 
                 String key = (String) iterator.next();
                 Object[] val = betweens.get(key);
-                sql.append(key + " between ");
+                sql.append(key + " between '");
                 sql.append(val[0].toString());
-                sql.append(" and ");
-                sql.append(val[1].toString());
+                sql.append("' and '");
+                sql.append(val[1].toString() + "'");
             }
         }
 
@@ -360,10 +360,10 @@ public final class SqlBuilder {
 
                 String key = (String) iterator.next();
                 Object[] val = notBetwee.get(key);
-                sql.append(key + " not between ");
+                sql.append(key + " not between '");
                 sql.append(val[0].toString());
-                sql.append(" and ");
-                sql.append(val[1].toString());
+                sql.append("' and '");
+                sql.append(val[1].toString() + "'");
             }
         }
 

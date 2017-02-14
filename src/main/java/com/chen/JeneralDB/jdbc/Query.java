@@ -147,7 +147,7 @@ public final class Query {
     }
 
     public boolean isEmpty() {
-        if (null != top || !"".equals(top)) {
+        if (null != top && !"".equals(top)) {
             return false;
         }
 
