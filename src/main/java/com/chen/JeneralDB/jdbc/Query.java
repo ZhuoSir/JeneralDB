@@ -8,6 +8,10 @@ import java.util.Map;
  */
 public final class Query {
 
+    private String tableName;
+
+    private String[] fields;
+
     private int startPage;
 
     private int endPage;
@@ -98,6 +102,22 @@ public final class Query {
         return this;
     }
 
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setFields(String[] fields) {
+        this.fields = fields;
+    }
+
+    public String[] getFields() {
+        return fields;
+    }
+
     public int getStartPage() {
         return startPage;
     }
@@ -147,6 +167,11 @@ public final class Query {
     }
 
     public boolean isEmpty() {
+
+        if (null != tableName && !"".equals(tableName)) {
+            return false;
+        }
+
         if (null != top && !"".equals(top)) {
             return false;
         }

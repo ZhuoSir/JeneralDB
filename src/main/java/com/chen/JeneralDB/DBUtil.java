@@ -268,13 +268,14 @@ public class DBUtil {
     public <T> List<T> queryBeanListByQuery(Query query, Class<T> beanClass)
             throws Exception {
         String tableName = beanClass.getSimpleName();
-        return queryByQuery(tableName, query).toBeanList(beanClass);
+        query.setTableName(tableName);
+        return queryByQuery(query).toBeanList(beanClass);
     }
 
 
-    public DataTable queryByQuery(String tableName, Query query)
+    public DataTable queryByQuery(Query query)
             throws Exception {
-        String sql = buildSelectSqlByQuery(tableName, query);
+        String sql = buildSelectSqlByQuery(query);
         if (null != sql && !"".equals(sql)) {
             return queryDataTable(sql);
         }

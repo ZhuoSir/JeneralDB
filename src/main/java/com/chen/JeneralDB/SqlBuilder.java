@@ -174,13 +174,27 @@ public final class SqlBuilder {
         return delete.toString();
     }
 
-    public static String buildSelectSqlByQuery(String tableName, Query query) {
-        if (null == query || query.isEmpty()
-                || null == tableName || "".equals(tableName)) {
+    public static String buildSelectSqlByQuery(Query query) {
+        if (null == query || query.isEmpty()) {
             return null;
         }
 
-        StringBuilder sql = new StringBuilder("select * from " + tableName + " where ");
+//        StringBuilder sql        = new StringBuilder("select * from " + tableName + " where ");
+        StringBuilder sql = new StringBuilder(" select ");
+        if (null != query.getFields() && query.getFields().length > 0) {
+            String[] fields = query.getFields();
+            for (int i = 0; i < fields.length; i++) {
+                if (i > 0) {
+                    sql.append(" , ");
+                }
+                sql.append(fields[i]);
+            }
+        } else {
+            sql.append(" * ");
+        }
+
+        sql.append(" from " + query.getTableName() + " where ");
+
         boolean isNotFirst = false;
         boolean hasJudege = false;
         Iterator iterator = null;
