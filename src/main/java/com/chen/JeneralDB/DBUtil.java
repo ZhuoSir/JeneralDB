@@ -580,6 +580,20 @@ public class DBUtil {
 
 
     /**
+     * 开启事物。若数据库连接尚未开启，开启之.
+     *
+     * @param isolationLevel 隔离等级
+     * */
+    public void transBegin(int isolationLevel) throws Exception {
+        checkConnect();
+
+        conn.setAutoCommit(false);
+        this.AutoCommit = false;
+        conn.setTransactionIsolation(isolationLevel);
+    }
+
+
+    /**
      * 提交事务。提交事务后，自动关闭连接。
      *
      * @throws Exception
