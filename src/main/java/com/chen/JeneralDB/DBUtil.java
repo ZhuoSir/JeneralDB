@@ -587,9 +587,9 @@ public class DBUtil {
     public void transBegin(int isolationLevel) throws Exception {
         checkConnect();
 
+        conn.setTransactionIsolation(isolationLevel);
         conn.setAutoCommit(false);
         this.AutoCommit = false;
-        conn.setTransactionIsolation(isolationLevel);
     }
 
 
