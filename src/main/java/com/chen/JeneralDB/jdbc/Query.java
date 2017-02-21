@@ -12,9 +12,9 @@ public final class Query {
 
     private String[] fields;
 
-    private int startPage;
+    private int pageNo = -1;
 
-    private int endPage;
+    private int pageSize;
 
     private String top;
 
@@ -91,15 +91,31 @@ public final class Query {
         return this;
     }
 
-    public Query page(int start) {
-        this.startPage = start;
+    public Query page(int pageNo) {
+        this.pageNo = pageNo;
         return this;
     }
 
-    public Query page(int start, int end) {
-        this.startPage = start;
-        this.endPage = end;
+    public Query page(int pageNo, int pageSize) {
+        this.pageNo = pageNo;
+        this.pageSize = pageSize;
         return this;
+    }
+
+    public void setPageNo(int pageNo) {
+        this.pageNo = pageNo;
+    }
+
+    public int getPageNo() {
+        return pageNo;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public int getPageSize() {
+        return pageSize;
     }
 
     public void setTableName(String tableName) {
@@ -118,12 +134,8 @@ public final class Query {
         return fields;
     }
 
-    public int getStartPage() {
-        return startPage;
-    }
-
-    public int getEndPage() {
-        return endPage;
+    public void setTop(String top) {
+        this.top = top;
     }
 
     public String getTop() {

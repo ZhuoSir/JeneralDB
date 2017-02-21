@@ -179,8 +179,12 @@ public final class SqlBuilder {
             return null;
         }
 
-//        StringBuilder sql        = new StringBuilder("select * from " + tableName + " where ");
         StringBuilder sql = new StringBuilder(" select ");
+
+        if (null != query.getTop() && !"".equals(query.getTop())) {
+            sql.append(" top " + query.getTop() + " ");
+        }
+
         if (null != query.getFields() && query.getFields().length > 0) {
             String[] fields = query.getFields();
             for (int i = 0; i < fields.length; i++) {
@@ -279,7 +283,7 @@ public final class SqlBuilder {
             }
         }
 
-        if (null != query.getIn() && !query.getNotIn().isEmpty()) {
+        if (null != query.getIn() && !query.getIn().isEmpty()) {
             hasJudege = true;
             Map<String, Object[]> In = query.getIn();
             Set set = In.keySet();
@@ -412,7 +416,21 @@ public final class SqlBuilder {
             }
         }
 
+        if (!hasJudege) {
+            String sql1 = sql.toString();
+            sql1 = sql1.replaceAll("where", "");
+            sql = new StringBuilder(sql1);
+        }
+
+        if (query.getPageNo() >= 0
+                && query.getPageSize() > 0) {
+            sql.append(" limit " + query.getPageNo());
+            sql.append(" , ");
+            sql.append(query.getPageSize());
+        }
+
         sql.append(";");
+
         return sql.toString();
     }
 }
