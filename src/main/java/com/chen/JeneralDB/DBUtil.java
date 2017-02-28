@@ -46,6 +46,7 @@ public class DBUtil {
                 properties.getProperty("db_url"),
                 properties.getProperty("db_username"),
                 properties.getProperty("db_password"));
+        conn.setTransactionIsolation(Integer.valueOf(properties.getProperty("db_transactionIsolation")));
         conn.setAutoCommit(AutoCommit);
 
         return conn;
