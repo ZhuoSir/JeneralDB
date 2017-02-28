@@ -269,7 +269,8 @@ public class DBUtil {
             throws Exception {
         String tableName = beanClass.getSimpleName();
         query.setTableName(tableName);
-        return queryByQuery(query).toBeanList(beanClass);
+        DataTable dt = queryByQuery(query);
+        return null != dt ? dt.toBeanList(beanClass) : null;
     }
 
 
