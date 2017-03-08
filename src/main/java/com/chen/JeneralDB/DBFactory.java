@@ -32,6 +32,8 @@ public class DBFactory {
 
     private boolean sqlPack = false;
 
+    private boolean decimalPack = false;
+
     private DBFactory() {
     }
 
@@ -128,6 +130,12 @@ public class DBFactory {
                     || columnType[i].equalsIgnoreCase("text")) {
                 sqlPack = true;
             }
+
+            if (columnType[i].equalsIgnoreCase("decimal") || columnType[i].equalsIgnoreCase("numeric")
+                    || columnType[i].equalsIgnoreCase("real") || columnType[i].equalsIgnoreCase("money")
+                    || columnType[i].equalsIgnoreCase("smallmoney")) {
+                decimalPack = true;
+            }
         }
 
         String content = parse(allTableName, packageName, columnNames, columnType);
@@ -155,6 +163,10 @@ public class DBFactory {
 
         if (sqlPack) {
             buffer.append("import java.sql.*;\r\n\r\n");
+        }
+
+        if (decimalPack) {
+            buffer.append("import java.math.BigDecimal;\r\n\r\n");
         }
 
         buffer.append("/**\r\n");
@@ -244,7 +256,7 @@ public class DBFactory {
         } else if (sqlType.equalsIgnoreCase("decimal") || sqlType.equalsIgnoreCase("numeric")
                 || sqlType.equalsIgnoreCase("real") || sqlType.equalsIgnoreCase("money")
                 || sqlType.equalsIgnoreCase("smallmoney")) {
-            return "double";
+            return "BigDecimal";
         } else if (sqlType.equalsIgnoreCase("varchar") || sqlType.equalsIgnoreCase("char")
                 || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
                 || sqlType.equalsIgnoreCase("text")) {
