@@ -165,10 +165,10 @@ public class DBUtil {
                     try {
                         Object value = resultSet.getObject(name);
                         setValue(t, field, value);
+                    } catch (SQLException e) {
+
                     } catch (Exception e) {
                         e.printStackTrace();
-                    } finally {
-                        continue;
                     }
                 }
                 lists.add(t);
@@ -217,10 +217,10 @@ public class DBUtil {
                     try {
                         Object value = rs.getObject(name);
                         setValue(t, f, value);
+                    } catch (SQLException e) {
+
                     } catch (Exception e) {
                         e.printStackTrace();
-                    } finally {
-                        continue;
                     }
                 }
                 lists.add(t);
