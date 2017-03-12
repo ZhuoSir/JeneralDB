@@ -266,6 +266,12 @@ public class DBUtil {
     }
 
 
+    public DataTable queryDataTable(Query query)
+            throws Exception {
+        return queryDataTable(buildSelectSqlByQuery(query));
+    }
+
+
     public <T> List<T> queryBeanListByQuery(Query query, Class<T> beanClass)
             throws Exception {
         String tableName = beanClass.getSimpleName();
@@ -283,13 +289,6 @@ public class DBUtil {
         }
 
         return null;
-    }
-
-
-    public <T> List<T> queryByQuery(Query query, Class<T> beanClass)
-            throws Exception {
-        DataTable dt = queryByQuery(query);
-        return dt != null ? dt.toBeanList(beanClass) : null;
     }
 
 
