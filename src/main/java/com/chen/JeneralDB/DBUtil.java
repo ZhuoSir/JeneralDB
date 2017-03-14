@@ -36,6 +36,11 @@ public class DBUtil {
     }
 
 
+    /**
+     * 打开数据连接方法<br>
+     * <P>连接数据在JeneralDB-config.properties中</P>
+     *
+     * */
     public Connection openConnection()
             throws Exception {
         Properties properties = new Properties();
@@ -53,6 +58,10 @@ public class DBUtil {
     }
 
 
+    /**
+     * 关闭数据库连接方法
+     *
+     * */
     public void closeConnection() throws SQLException {
         try {
             if (null != conn) {
@@ -65,6 +74,13 @@ public class DBUtil {
     }
 
 
+    /**
+     * Map对象查询方法
+     *
+     * @param sql 查询语句
+     * @return 查询结果Map
+     * */
+    @Deprecated
     public List<Map<String, Object>> queryMapList(String sql)
             throws Exception {
         checkConnect();
@@ -91,6 +107,15 @@ public class DBUtil {
     }
 
 
+    /**
+     * Map对象查询方法
+     *
+     * @param sql 查询语句
+     * @param params sql参数
+     *
+     * @return 查询结果Map
+     * */
+    @Deprecated
     public List<Map<String, Object>> queryMapList(String sql, Object... params)
             throws Exception {
         checkConnect();
@@ -122,6 +147,12 @@ public class DBUtil {
     }
 
 
+    /**
+     * 从结果集ResultSet中获取数据
+     *
+     * @param rs 结果集
+     * @param lists 返回Map数组
+     * */
     private void genDataFromResultSet(ResultSet rs, List<Map<String, Object>> lists)
             throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
@@ -140,6 +171,14 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询JavaBean数组方法
+     *
+     * @param sql 查询sql
+     * @param beanClass 转换Javabean对象Class
+     *
+     * @return 结果数组
+     * */
     public <T> List<T> queryBeanList(String sql, Class<T> beanClass)
             throws Exception {
         checkConnect();
@@ -187,6 +226,15 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询JavaBean数组方法
+     *
+     * @param sql 查询sql
+     * @param beanClass 转换Javabean对象Class
+     * @param params sql 查询参数
+     *
+     * @return 结果数组
+     * */
     public <T> List<T> queryBeanList(String sql, Class<T> beanClass, Object... params)
             throws Exception {
         checkConnect();
@@ -239,6 +287,63 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询JavaBean数组方法(新方法)
+     *
+     * @param sql 查询sql
+     * @param beanClass 转换Javabean对象Class
+     *
+     * @return 结果数组
+     * */
+    public <T> List<T> queryBeanListNew(String sql, Class<T> beanClass)
+            throws Exception {
+        checkConnect();
+
+        List<T>           lists     = new ArrayList<T>();
+        PreparedStatement preStmt   = null;
+        ResultSet         resultSet = null;
+        try {
+            preStmt   = conn.prepareStatement(sql);;
+            resultSet = preStmt.executeQuery();
+            ResultSetMetaData data = resultSet.getMetaData();
+
+            String[] columnArr = new String[data.getColumnCount()];
+            for (int i = 1; i <= data.getColumnCount(); i++) {
+                columnArr[i-1] = data.getColumnLabel(i);
+            }
+
+            while (resultSet.next()) {
+                T t = beanClass.newInstance();
+                for (int i = 0; i < columnArr.length; i++) {
+                    Field field = beanClass.getDeclaredField(columnArr[i]);
+                    field.setAccessible(true);
+                    Object value = resultSet.getObject(columnArr[i]);
+                    setValue(t, field, value);
+                }
+
+                lists.add(t);
+            }
+        } finally {
+            if (null != preStmt)
+                preStmt.close();
+            if (null != resultSet)
+                resultSet.close();
+            if (null != conn && AutoCommit)
+                conn.close();
+        }
+
+        return lists;
+    }
+
+
+    /**
+     * 查询单独JavaBean方法
+     *
+     * @param sql 查询sql
+     * @param beanClass 转换Javabean对象Class
+     *
+     * @return 结果对象
+     * */
     public <T> T queryBean(String sql, Class<T> beanClass)
             throws Exception {
         List<T> lists = queryBeanList(sql, beanClass);
@@ -246,6 +351,15 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询单独JavaBean方法
+     *
+     * @param sql 查询sql
+     * @param beanClass 转换Javabean对象Class
+     * @param params 查询参数
+     *
+     * @return 结果对象
+     * */
     public <T> T queryBean(String sql, Class<T> beanClass, Object... params)
             throws Exception {
         List<T> lists = queryBeanList(sql, beanClass, params);
@@ -253,6 +367,13 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询DataTable方法
+     *
+     * @param sql 查询sql
+     *
+     * @return 结果DataTable
+     * */
     public DataTable queryDataTable(String sql)
             throws Exception {
         List<Map<String, Object>> list = queryMapList(sql);
@@ -266,6 +387,13 @@ public class DBUtil {
     }
 
 
+    /**
+     * 查询DataTable方法,Query方式
+     *
+     * @param query Query对象
+     *
+     * @return 结果DataTable
+     * */
     public DataTable queryDataTable(Query query)
             throws Exception {
         return queryDataTable(buildSelectSqlByQuery(query));
