@@ -127,8 +127,10 @@ public class DBUtil {
         try {
             statement = conn.prepareStatement(sql);
 
-            for (int i = 0; i < params.length; i++) {
-                statement.setObject(i + 1, params[i]);
+            if (null != params) {
+                for (int i = 0; i < params.length; i++) {
+                    statement.setObject(i + 1, params[i]);
+                }
             }
 
             rs = statement.getResultSet();
@@ -181,48 +183,7 @@ public class DBUtil {
      * */
     public <T> List<T> queryBeanList(String sql, Class<T> beanClass)
             throws Exception {
-        checkConnect();
-
-        List<T> lists = new ArrayList<T>();
-        Statement stmt = null;
-        ResultSet resultSet = null;
-
-        try {
-            stmt = conn.createStatement();
-            resultSet = stmt.executeQuery(sql);
-            print("执行sql: " + sql);
-            Field[] fields = beanClass.getDeclaredFields();
-
-            for (Field field : fields) {
-                field.setAccessible(true);
-            }
-
-            while (null != resultSet && resultSet.next()) {
-                T t = beanClass.newInstance();
-                for (Field field : fields) {
-                    String name = field.getName();
-                    try {
-                        Object value = resultSet.getObject(name);
-                        setValue(t, field, value);
-                    } catch (SQLException e) {
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                lists.add(t);
-            }
-
-        } finally {
-            if (null != resultSet)
-                resultSet.close();
-            if (null != stmt)
-                stmt.close();
-            if (null != conn && AutoCommit)
-                conn.close();
-        }
-
-        return lists;
+        return queryBeanList(sql, beanClass, null);
     }
 
 
@@ -246,8 +207,10 @@ public class DBUtil {
         try {
             preStmt = conn.prepareStatement(sql);
 
-            for (int i = 0; i < params.length; i++) {
-                preStmt.setObject(i + 1, params[i]);
+            if (null != params) {
+                for (int i = 0; i < params.length; i++) {
+                    preStmt.setObject(i + 1, params[i]);
+                }
             }
 
             rs = preStmt.executeQuery();
@@ -295,7 +258,7 @@ public class DBUtil {
      *
      * @return 结果数组
      * */
-    public <T> List<T> queryBeanListNew(String sql, Class<T> beanClass)
+    public <T> List<T> queryBeanListNew(Class<T> beanClass, String sql, Object... params)
             throws Exception {
         checkConnect();
 
@@ -303,7 +266,14 @@ public class DBUtil {
         PreparedStatement preStmt   = null;
         ResultSet         resultSet = null;
         try {
-            preStmt   = conn.prepareStatement(sql);;
+            preStmt   = conn.prepareStatement(sql); {
+                if (null != params) {
+                    for (int i = 0; i < params.length; i++) {
+                        preStmt.setObject(i + 1, params[i]);
+                    }
+                }
+            }
+
             resultSet = preStmt.executeQuery();
             ResultSetMetaData data = resultSet.getMetaData();
 
@@ -315,10 +285,14 @@ public class DBUtil {
             while (resultSet.next()) {
                 T t = beanClass.newInstance();
                 for (int i = 0; i < columnArr.length; i++) {
-                    Field field = beanClass.getDeclaredField(columnArr[i]);
-                    field.setAccessible(true);
-                    Object value = resultSet.getObject(columnArr[i]);
-                    setValue(t, field, value);
+                    try {
+                        Field field = beanClass.getDeclaredField(columnArr[i]);
+                        field.setAccessible(true);
+                        Object value = resultSet.getObject(columnArr[i]);
+                        setValue(t, field, value);
+                    } catch (NoSuchFieldException e) {
+                        print(beanClass.getSimpleName() + "没有" + columnArr[i] + "此属性;");
+                    }
                 }
 
                 lists.add(t);
@@ -376,7 +350,20 @@ public class DBUtil {
      * */
     public DataTable queryDataTable(String sql)
             throws Exception {
-        List<Map<String, Object>> list = queryMapList(sql);
+        return queryDataTable(sql, null);
+    }
+
+
+    /**
+     * 查询DataTable方法
+     *
+     * @param sql 查询sql
+     * @param params SQL参数
+     * @return 结果DataTable
+     * */
+    public DataTable queryDataTable(String sql, Object... params)
+            throws Exception {
+        List<Map<String, Object>> list = queryMapList(sql, params);
         DataTable dataTable = null;
 
         if (null != list && !list.isEmpty()) {
