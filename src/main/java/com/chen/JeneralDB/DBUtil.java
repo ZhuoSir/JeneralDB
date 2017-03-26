@@ -358,26 +358,6 @@ public class DBUtil {
      * 查询DataTable方法
      *
      * @param sql 查询sql
-     * @param params SQL参数
-     * @return 结果DataTable
-     * */
-    public DataTable queryDataTable(String sql, Object... params)
-            throws Exception {
-        List<Map<String, Object>> list = queryMapList(sql, params);
-        DataTable dataTable = null;
-
-        if (null != list && !list.isEmpty()) {
-            dataTable = new DataTable(list);
-        }
-
-        return dataTable;
-    }
-
-
-    /**
-     * 查询DataTable方法
-     *
-     * @param sql 查询sql
      * @param params 参数
      *
      * @return 结果DataTable
