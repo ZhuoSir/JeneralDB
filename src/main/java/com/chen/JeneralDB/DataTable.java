@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
+ *
  * Created by sunny on 2016/11/29.
  */
 public class DataTable {
@@ -51,7 +52,7 @@ public class DataTable {
      */
     public DataTable(ArrayList<String> columnNames) {
         int size = columnNames.size();
-        if (columnNames != null && size > 0) {
+        if (null != columnNames && size > 0) {
             this.columns = new ArrayList<>(size);
 
             for (int i = 0; i < size; i++) {
@@ -69,7 +70,7 @@ public class DataTable {
      * @param rowDatas    对象矩阵
      */
     public DataTable(String[] columnNames, Object[] rowDatas) throws Exception {
-        if (columnNames != null && columnNames.length > 0) {
+        if (null != columnNames && columnNames.length > 0) {
             if (columnNames.length != rowDatas.length) {
                 throw new Exception("行记录与列记录长度必须保持一致");
             }
@@ -112,7 +113,7 @@ public class DataTable {
                 Field field = fields[j];
                 field.setAccessible(true);
                 Object value = field.get(obj);
-                dataArr[i][j] = value != null ? value : null;
+                dataArr[i][j] = value;
             }
         }
 
@@ -663,9 +664,7 @@ public class DataTable {
             return null;
         }
 
-        Object[] rows = getRowAtIndex(y);
-
-        return rows[x];
+        return getRowAtIndex(y)[x];
     }
 
     /**
