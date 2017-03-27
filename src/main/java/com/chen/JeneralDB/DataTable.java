@@ -558,13 +558,44 @@ public class DataTable {
                     continue;
                 }
 
-                fields[j].set(t, value);
+                setValues(t, fields[j] , value);
             }
 
             beanList.add(t);
         }
 
         return beanList;
+    }
+
+    /**
+     * 根据类型，给Field设置值
+     * */
+    private <T> void setValues(T t, Field field, Object value)
+            throws IllegalAccessException {
+        String type = field.getType().toString();
+
+        if (null == value) {
+            Object defaultValue = null;
+
+            switch (type) {
+                case "int":
+                case "Integer":
+                    defaultValue = 0;
+                    break;
+                case "long":
+                case "Long":
+                    defaultValue = 0L;
+                    break;
+                case "float":
+                case "Float":
+                    defaultValue = 0f;
+            }
+
+            field.set(t, defaultValue);
+            return;
+        }
+
+        field.set(t, value);
     }
 
     /**
