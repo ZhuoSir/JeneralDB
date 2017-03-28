@@ -133,7 +133,7 @@ public class DBUtil {
                 }
             }
 
-            rs = statement.getResultSet();
+            rs = statement.executeQuery();
             genDataFromResultSet(rs, lists);
             print("执行sql: " + sql);
         } finally {
