@@ -240,37 +240,95 @@ public class DBFactory {
     }
 
 
+//    private String sqlType2JavaType(String sqlType) {
+//        if (sqlType.equalsIgnoreCase("bit")) {
+//            return "Boolean";
+//        } else if (sqlType.equalsIgnoreCase("tinyint")) {
+//            return "byte";
+//        } else if (sqlType.equalsIgnoreCase("smallint")) {
+//            return "short";
+//        } else if (sqlType.equalsIgnoreCase("int") || sqlType.equalsIgnoreCase("integer")) {
+//            return "int";
+//        } else if (sqlType.equalsIgnoreCase("bigint") || sqlType.equalsIgnoreCase("int unsigned")) {
+//            return "long";
+//        } else if (sqlType.equalsIgnoreCase("float")) {
+//            return "float";
+//        } else if (sqlType.equalsIgnoreCase("decimal") || sqlType.equalsIgnoreCase("numeric")
+//                || sqlType.equalsIgnoreCase("real") || sqlType.equalsIgnoreCase("money")
+//                || sqlType.equalsIgnoreCase("smallmoney")) {
+//            return "BigDecimal";
+//        } else if (sqlType.equalsIgnoreCase("varchar") || sqlType.equalsIgnoreCase("char")
+//                || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
+//                || sqlType.equalsIgnoreCase("text")) {
+//            return "String";
+//        } else if (sqlType.equalsIgnoreCase("datetime") || sqlType.equalsIgnoreCase("timestamp")) {
+//            return "Date";
+//        } else if (sqlType.equalsIgnoreCase("image")) {
+//            return "Blod";
+//        } else if (sqlType.equalsIgnoreCase("double")) {
+//            return "double";
+//        } else if (sqlType.equalsIgnoreCase("longblob")) {
+//            return "byte[]";
+//        }
+//        return null;
+//    }
+
+
     private String sqlType2JavaType(String sqlType) {
-        if (sqlType.equalsIgnoreCase("bit")) {
-            return "Boolean";
-        } else if (sqlType.equalsIgnoreCase("tinyint")) {
-            return "byte";
-        } else if (sqlType.equalsIgnoreCase("smallint")) {
-            return "short";
-        } else if (sqlType.equalsIgnoreCase("int") || sqlType.equalsIgnoreCase("integer")) {
-            return "int";
-        } else if (sqlType.equalsIgnoreCase("bigint") || sqlType.equalsIgnoreCase("int unsigned")) {
-            return "long";
-        } else if (sqlType.equalsIgnoreCase("float")) {
-            return "float";
-        } else if (sqlType.equalsIgnoreCase("decimal") || sqlType.equalsIgnoreCase("numeric")
-                || sqlType.equalsIgnoreCase("real") || sqlType.equalsIgnoreCase("money")
-                || sqlType.equalsIgnoreCase("smallmoney")) {
-            return "BigDecimal";
-        } else if (sqlType.equalsIgnoreCase("varchar") || sqlType.equalsIgnoreCase("char")
-                || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
-                || sqlType.equalsIgnoreCase("text")) {
-            return "String";
-        } else if (sqlType.equalsIgnoreCase("datetime") || sqlType.equalsIgnoreCase("timestamp")) {
-            return "Date";
-        } else if (sqlType.equalsIgnoreCase("image")) {
-            return "Blod";
-        } else if (sqlType.equalsIgnoreCase("double")) {
-            return "double";
-        } else if (sqlType.equalsIgnoreCase("longblob")) {
-            return "byte[]";
+        String ret = null;
+
+        switch (sqlType.toLowerCase()) {
+            case "bit":
+                ret = "Boolean";
+                break;
+            case "tinyint":
+                ret = "byte";
+                break;
+            case "smallint":
+                ret = "short";
+                break;
+            case "float":
+                ret = "float";
+                break;
+            case "int":
+            case "integer":
+                ret = "int";
+                break;
+            case "bigint":
+            case "int unsigned":
+                ret = "long";
+                break;
+            case "decimal":
+            case "numeric":
+            case "real":
+            case "money":
+            case "smallmoney":
+                ret = "BigDecimal";
+                break;
+            case "varchar":
+            case "char":
+            case "nvarchar":
+            case "nchar":
+            case "text":
+                ret = "String";
+                break;
+            case "datetime":
+            case "timestamp":
+                ret = "Date";
+                break;
+            case "image":
+                ret = "Blod";
+                break;
+            case "double":
+                ret = "double";
+                break;
+            case "longblob":
+                ret = "byte[]";
+            default:
+                break;
         }
-        return null;
+
+        return ret;
     }
 
 
