@@ -387,6 +387,14 @@ public class DBUtil {
     }
 
 
+    /**
+     * 根据Query查询bean集合
+     *
+     * @param query 查询query
+     * @param beanClass 查询类class
+     *
+     * @return 返回集合
+     * */
     public <T> List<T> queryBeanListByQuery(Query query, Class<T> beanClass)
             throws Exception {
         String tableName = beanClass.getSimpleName();

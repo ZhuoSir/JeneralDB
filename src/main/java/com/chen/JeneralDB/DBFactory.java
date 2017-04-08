@@ -191,6 +191,10 @@ public class DBFactory {
     }
 
 
+    /**
+     * 生成toString()方法
+     *
+     * */
     private void processToString(StringBuffer buffer, String[] columnNames, String[] columnType) {
         buffer.append("\tpublic String toString() {\n");
         buffer.append("\t\tStringBuffer string = new StringBuffer();\n");
@@ -213,6 +217,10 @@ public class DBFactory {
     }
 
 
+    /**
+     * 生成所有get set 方法
+     *
+     * */
     private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
         for (int i = 0; i < colnames.length; i++) {
             buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
@@ -228,6 +236,10 @@ public class DBFactory {
     }
 
 
+    /**
+     * 生成所有属性
+     *
+     * */
     private void processAllAttrs(StringBuffer buffer, String[] columnNames, String[] columnTypes) {
         for (int i = 0; i < columnNames.length; i++) {
             buffer.append("\tprivate ");
@@ -332,6 +344,10 @@ public class DBFactory {
     }
 
 
+    /**
+     * 根据表名格式化生成类名
+     *
+     * */
     private String formatClassName(String allTableName) {
         if (null == allTableName || allTableName.isEmpty()) {
             return allTableName;
@@ -355,8 +371,10 @@ public class DBFactory {
     }
 
 
-
-
+    /**
+     * 将表中名的第一个字符大写
+     *
+     * */
     private String initCap(String allTableName) {
         if (null == allTableName || allTableName.isEmpty()) {
             return allTableName;
@@ -373,6 +391,7 @@ public class DBFactory {
 
     /**
      * 获取所有数据库中的所有表名
+     *
      */
     public String[] getAllTableNamesOfDataBase()
             throws Exception {
@@ -389,7 +408,11 @@ public class DBFactory {
     }
 
 
-    public DataTable getAllPKOfTable(String tableName)
+    /**　
+     * 获取表的所有主键
+     *
+     * */
+    private DataTable getAllPKOfTable(String tableName)
             throws Exception {
         Properties p = getProperties();
         String sql = " SELECT\n" +
@@ -410,6 +433,10 @@ public class DBFactory {
     }
 
 
+    /**
+     * 获取表中所有主键的名称
+     *
+     * */
     public String[] getAllPkNamesOfTable(String tableName)
             throws Exception {
         DataTable dt = getAllPKOfTable(tableName);
@@ -426,6 +453,7 @@ public class DBFactory {
 
     /**
      * 获取相应的配置文件信息
+     *
      */
     public static Properties getProperties()
             throws IOException {
@@ -440,6 +468,7 @@ public class DBFactory {
 
     /**
      * 获取配置文件中的基本属性
+     *
      */
     public static String getProperty(String key)
             throws IOException {
@@ -449,6 +478,7 @@ public class DBFactory {
 
     /**
      * 将字符串写进java文件，如果没有文件创建之
+     *
      */
     private void writeToJavaFile(String content, String directory)
             throws IOException {
