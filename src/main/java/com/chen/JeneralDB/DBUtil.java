@@ -20,7 +20,7 @@ public class DBUtil {
 
     private Connection conn = null;
 
-    private static DBUtil dbUtil;
+    private static volatile DBUtil dbUtil;
 
     private static boolean AutoCommit = true;
 
@@ -28,10 +28,15 @@ public class DBUtil {
     }
 
 
-    public static synchronized DBUtil getInstance() {
+    public static DBUtil getInstance() {
         if (null == dbUtil) {
-            dbUtil = new DBUtil();
+            synchronized (DBUtil.class) {
+                if (null == dbUtil) {
+                    dbUtil = new DBUtil();
+                }
+            }
         }
+
         return dbUtil;
     }
 
