@@ -97,6 +97,18 @@ public class ReflectUtil {
     }
 
     /**
+     * 获取对象中所有的Field，包括父类
+     *
+     * */
+    public static Field[] getAllDeclaredFields(final Object object) {
+        if (null == object) {
+            return null;
+        }
+
+        return getAllDeclaredFields(object.getClass());
+    }
+
+    /**
      * 获取父类的Field
      * */
     public static Field[] getSuperDeclaredFields(final Class clazz) {

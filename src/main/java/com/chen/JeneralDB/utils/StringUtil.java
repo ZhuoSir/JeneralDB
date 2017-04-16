@@ -18,15 +18,36 @@ public class StringUtil {
      * 检查字符串是否为null或者空
      *
      * */
-    public static boolean isNotNullOrEmpty(String str) {
+    public static boolean isNotNullOrEmpty(final String str) {
         return null != str && !"".equals(str);
+    }
+
+    /**
+     * 检查字符串是否为null或者空
+     *
+     * */
+    public static boolean isNullOrEmpty(final String str) {
+        return !isNotNullOrEmpty(str);
+    }
+
+
+    /**
+     * 检查字符串是否包含
+     *
+     * */
+    public static boolean contains(final CharSequence sequence, final CharSequence searchSequence) {
+        if (null == sequence || null == searchSequence) {
+            return false;
+        }
+
+        return sequence.toString().indexOf(searchSequence.toString(), 0) > -1;
     }
 
 
     /**
      * 颠倒字符串
      * */
-    public static String reverse(String str) {
+    public static String reverse(final String str) {
         char[] chars = str.toCharArray();
         for (int i = 0, j = chars.length-1; i < j; i++, j--) {
             char t = chars[i];
@@ -42,7 +63,7 @@ public class StringUtil {
      * 判断字符串是不是数字
      *
      * */
-    public static boolean isNumberic(String str) {
+    public static boolean isNumberic(final CharSequence str) {
         Pattern pattern = Pattern.compile("^[-+]?(([0-9]+)([.]([0-9]+))?|([.]([0-9]+))?)$");
         Matcher isNum   = pattern.matcher(str);
         return isNum.matches();
@@ -53,7 +74,7 @@ public class StringUtil {
      * 判断字符串是不是中文
      *
      * */
-    public static boolean isChinese(String str) {
+    public static boolean isChinese(final CharSequence str) {
         Pattern pattern = Pattern.compile("^[\\u4e00-\\u9fa5]*$");
         Matcher isCh    = pattern.matcher(str);
         return isCh.matches();
@@ -66,7 +87,7 @@ public class StringUtil {
      * @param str 加密字符串
      * @return 加密结果
      */
-    public static String EncodeByMD5(String str) {
+    public static String EncodeByMD5(final CharSequence str) {
         MessageDigest md5;
         md5 = null;
 
@@ -79,7 +100,7 @@ public class StringUtil {
         BASE64Encoder base64Encoder = new BASE64Encoder();
         String newStr = null;
         try {
-            newStr = base64Encoder.encode(md5.digest(str.getBytes("utf-8")));
+            newStr = base64Encoder.encode(md5.digest(str.toString().getBytes("utf-8")));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

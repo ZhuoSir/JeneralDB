@@ -1,6 +1,7 @@
 package com.chen.JeneralDB;
 
 import com.chen.JeneralDB.filter.DataTableFilter;
+import com.chen.JeneralDB.utils.ReflectUtil;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -544,7 +545,7 @@ public class DataTable {
 
         for (int i = 0; i < rowSize; i++) {
             T t = beanClass.newInstance();
-            Field[] fields = t.getClass().getDeclaredFields();
+            Field[] fields = ReflectUtil.getAllDeclaredFields(t);
 
             for (int j = 0; j < fields.length; j++) {
                 fields[j].setAccessible(true);
