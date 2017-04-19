@@ -108,7 +108,7 @@ public class DataTable {
         for (int i = 0; i < dataArr.length; i++) {
             Object obj = list.get(i);
             Class<?> ownerClass = obj.getClass();
-            Field[] fields = ownerClass.getDeclaredFields();
+            Field[] fields = ReflectUtil.getAllDeclaredFields(ownerClass);
 
             for (int j = 0; j < fields.length; j++) {
                 Field field = fields[j];
@@ -209,7 +209,7 @@ public class DataTable {
         String[] colArr;
         Object[] rowArr;
         Class<?> ownerClass = obj.getClass();
-        Field[] fields = ownerClass.getDeclaredFields();
+        Field[] fields = ReflectUtil.getAllDeclaredFields(ownerClass);
         {
             colArr = new String[fields.length];
             for (int i = 0; i < fields.length; i++) {
@@ -521,9 +521,9 @@ public class DataTable {
         List<Object[]> theRows = new ArrayList<>();
         int rowSize = this.getRowSize();
 
-        if (Start >= rowSize
-                || End >= rowSize) {
-            throw new ArrayIndexOutOfBoundsException("start,end不能超过row的size");
+        if (!(Start >= 0 && Start <= rowSize
+                && End >= 0 && End <= rowSize)) {
+            throw new ArrayIndexOutOfBoundsException("start,end必须在size范围内");
         }
 
         for (int i = Start, j = Start; i < End; i++) {
@@ -591,6 +591,7 @@ public class DataTable {
                 case "float":
                 case "Float":
                     defaultValue = 0f;
+                    break;
             }
 
             field.set(t, defaultValue);
