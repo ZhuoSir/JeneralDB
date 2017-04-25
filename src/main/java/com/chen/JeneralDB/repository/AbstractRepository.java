@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *
  * Created by sunny on 2017/1/15.
  */
 public abstract class AbstractRepository<T> implements Repository<T> {

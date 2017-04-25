@@ -1,5 +1,6 @@
 package com.chen.JeneralDB.repository;
 
+import com.chen.JeneralDB.DBUtil;
 import com.chen.JeneralDB.jdbc.Connections;
 import com.chen.JeneralDB.jdbc.Query;
 import com.chen.JeneralDB.transaction.JdbcTransaction;
@@ -15,6 +16,8 @@ import java.util.Map;
  */
 public final class JdbcRepository<T> implements Repository<T> {
 
+    private DBUtil dbUtil;
+
     private boolean writeAble = true;
 
     public void setWriteAble(boolean writeAble) {
@@ -27,7 +30,8 @@ public final class JdbcRepository<T> implements Repository<T> {
     public int add(T t) throws Exception {
         transaction = beginTransaction();
 
-        final Connection connection = Connections.getConnection();
+        dbUtil.setConnection(Connections.getConnection());
+        dbUtil.save(t);
 
         return 0;
     }

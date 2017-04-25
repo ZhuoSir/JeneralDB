@@ -47,7 +47,7 @@ public final class Connections {
                 minConnCnt = Integer.valueOf(DBFactory.getProperty("db_minConnCnt"));
                 maxConnCnt = Integer.valueOf(DBFactory.getProperty("db_maxConnCnt"));
 
-                transactionIsolation = DBFactory.getProperty("db_transactionIsolation");
+                transactionIsolation = DBFactory.getProperty("db_transactionIsolationName");
                 if ("NONE".equals(transactionIsolation)) {
                     transactionIsolationInt = Connection.TRANSACTION_NONE;
                 } else if ("READ_COMMITTED".equals(transactionIsolation)) {
