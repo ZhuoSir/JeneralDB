@@ -42,6 +42,15 @@ public class DBUtil {
 
 
     /**
+     * Connection配置
+     *
+     * */
+    public void setConnection(Connection conn) {
+        this.conn = conn;
+    }
+
+
+    /**
      * 打开数据连接方法<br>
      * <P>连接数据在JeneralDB-config.properties中</P>
      *
@@ -133,8 +142,9 @@ public class DBUtil {
             statement = conn.prepareStatement(sql);
 
             if (null != params) {
-                for (int i = 0; i < params.length; i++) {
-                    statement.setObject(i + 1, params[i]);
+                for (int i = 0, j = 1; i < params.length; i++) {
+                    if (null == params[i]) continue;
+                    statement.setObject(j++, params[i]);
                 }
             }
 
@@ -271,7 +281,7 @@ public class DBUtil {
         PreparedStatement preStmt   = null;
         ResultSet         resultSet = null;
         try {
-            preStmt   = conn.prepareStatement(sql); {
+            preStmt = conn.prepareStatement(sql); {
                 if (null != params) {
                     for (int i = 0; i < params.length; i++) {
                         preStmt.setObject(i + 1, params[i]);
