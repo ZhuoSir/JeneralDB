@@ -26,9 +26,8 @@ public class DataTable {
      * 默认初始化方法，列记录默认添加"Columns1"；
      */
     public DataTable() {
-        columns = new ArrayList<>(1);
-        columns.add("Columns1");
-        rows = new ArrayList<>();
+        columns = new ArrayList<>(0);
+        rows = new ArrayList<>(0);
     }
 
     /**
@@ -279,6 +278,10 @@ public class DataTable {
         cloneObject.addAll(this.getRows());
 
         return cloneObject;
+    }
+
+    public boolean isEmpty() {
+        return this.columns.isEmpty() && this.rows.isEmpty();
     }
 
     public String toJSON() {
