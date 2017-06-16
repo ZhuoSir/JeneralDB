@@ -20,12 +20,6 @@ import java.util.Set;
 public final class SqlBuilder {
 
 
-//    public static String buildInsertSql(Object obj)
-//            throws IllegalAccessException {
-//        return buildInsertSql(obj, null);
-//    }
-
-
     public static String buildInsertSql(Object obj)
             throws IllegalAccessException {
         StringBuilder columns = new StringBuilder(" insert into ");
@@ -103,17 +97,11 @@ public final class SqlBuilder {
         }
     }
 
-//
-//    public static String buildUpdateSql(Object obj) throws Exception {
-//        return buildUpdateSql(obj, null);
-//    }
-
 
     public static String buildUpdateSql(Object obj)
             throws Exception {
         Class<?> t = obj.getClass();
         Field[] fields = t.getDeclaredFields();
-//        String tName = null != tableName ? tableName : t.getSimpleName();
         String tName;
         if (t.isAnnotationPresent(Table.class)) {
             tName = t.getAnnotation(Table.class).value();
@@ -125,7 +113,6 @@ public final class SqlBuilder {
 
         for (int i = 0, size = fields.length; i < size; i++) {
             Field field = fields[i];
-//            String columnName = field.getName();
             String columnName;
             if (field.isAnnotationPresent(Column.class)) {
                 columnName = field.getAnnotation(Column.class).value();
