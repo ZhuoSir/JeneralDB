@@ -122,7 +122,9 @@ public class DBFactory {
             columnSize[i] = resultSet.getColumnDisplaySize(i + 1);
 
             if (columnType[i].equalsIgnoreCase("datetime")
-                    || columnType[i].equalsIgnoreCase("timestamp")) {
+                    || columnType[i].equalsIgnoreCase("timestamp")
+                        || columnType[i].equalsIgnoreCase("date")
+                            || columnType[i].equalsIgnoreCase("year")) {
                 utilPack = true;
             }
 
@@ -326,6 +328,8 @@ public class DBFactory {
                 break;
             case "datetime":
             case "timestamp":
+            case "date":
+            case "year":
                 ret = "Date";
                 break;
             case "image":
