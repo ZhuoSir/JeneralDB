@@ -1,8 +1,11 @@
 package com.chen.JeneralDB;
 
+import com.chen.JeneralDB.annotation.Column;
+import com.chen.JeneralDB.annotation.Table;
 import com.chen.JeneralDB.jdbc.Query;
 import com.chen.JeneralDB.jdbc.SortDirection;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
@@ -17,26 +20,38 @@ import java.util.Set;
 public final class SqlBuilder {
 
 
+//    public static String buildInsertSql(Object obj)
+//            throws IllegalAccessException {
+//        return buildInsertSql(obj, null);
+//    }
+
+
     public static String buildInsertSql(Object obj)
-            throws IllegalAccessException {
-        return buildInsertSql(obj, null);
-    }
-
-
-    public static String buildInsertSql(Object obj, String tableName)
             throws IllegalAccessException {
         StringBuilder columns = new StringBuilder(" insert into ");
         StringBuilder values = new StringBuilder(" ) values (");
 
         Class<?> t = obj.getClass();
         Field[] fields = t.getDeclaredFields();
-        columns.append(null == tableName ? t.getSimpleName() : tableName);
+
+        if (t.isAnnotationPresent(Table.class)) {
+            columns.append(t.getAnnotation(Table.class).value());
+        } else {
+            columns.append(t.getSimpleName());
+        }
         columns.append(" ( ");
 
         int size = fields.length, columnNum = 0;
         for (Field field : fields) {
             field.setAccessible(true);
-            String columnName = field.getName();
+
+            String columnName;
+            if (field.isAnnotationPresent(Column.class)) {
+                columnName = field.getAnnotation(Column.class).value();
+            } else {
+                columnName = field.getName();
+            }
+
             String columnType = field.getType().getTypeName();
             Object value = field.get(obj);
 
@@ -88,22 +103,36 @@ public final class SqlBuilder {
         }
     }
 
+//
+//    public static String buildUpdateSql(Object obj) throws Exception {
+//        return buildUpdateSql(obj, null);
+//    }
 
-    public static String buildUpdateSql(Object obj) throws Exception {
-        return buildUpdateSql(obj, null);
-    }
 
-
-    public static String buildUpdateSql(Object obj, String tableName)
+    public static String buildUpdateSql(Object obj)
             throws Exception {
         Class<?> t = obj.getClass();
         Field[] fields = t.getDeclaredFields();
-        String tName = null != tableName ? tableName : t.getSimpleName();
+//        String tName = null != tableName ? tableName : t.getSimpleName();
+        String tName;
+        if (t.isAnnotationPresent(Table.class)) {
+            tName = t.getAnnotation(Table.class).value();
+        } else {
+            tName = t.getSimpleName();
+        }
+
         StringBuilder update = new StringBuilder(" update " + tName);
 
         for (int i = 0, size = fields.length; i < size; i++) {
             Field field = fields[i];
-            String columnName = field.getName();
+//            String columnName = field.getName();
+            String columnName;
+            if (field.isAnnotationPresent(Column.class)) {
+                columnName = field.getAnnotation(Column.class).value();
+            } else {
+                columnName = field.getName();
+            }
+
             String columnType = field.getType().getTypeName();
             field.setAccessible(true);
             Object value = field.get(obj);
@@ -144,15 +173,15 @@ public final class SqlBuilder {
 
     public static String buildDeleteSql(Object obj)
             throws Exception {
-        return buildDeleteSql(obj, null);
-    }
-
-
-    public static String buildDeleteSql(Object obj, String tableName)
-            throws Exception {
         Class<?> t = obj.getClass();
         Field[] fields = t.getDeclaredFields();
-        String tName = null != tableName ? tableName : t.getSimpleName();
+        String tName;
+        if (t.isAnnotationPresent(Table.class)) {
+            tName = t.getAnnotation(Table.class).value();
+        } else {
+            tName = t.getSimpleName();
+        }
+
         StringBuilder delete = new StringBuilder("delete from " + tName);
 
         String pk = DBFactory.getInstance().getAllPkNamesOfTable(tName)[0];

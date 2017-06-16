@@ -593,30 +593,12 @@ public class DBUtil {
     }
 
 
-    public int save(Object obj, String tableName) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("保存对象不能为Null");
-        }
-
-        return this.execute(buildInsertSql(obj, tableName));
-    }
-
-
     public int save(Connection conn, Object obj) throws Exception {
         if (null == obj) {
             throw new NullPointerException("保存对象不能为Null");
         }
 
         return this.execute(buildInsertSql(obj), conn);
-    }
-
-
-    public int save(Connection conn, Object obj, String tableName) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("保存对象不能为Null");
-        }
-
-        return this.execute(buildInsertSql(obj, tableName), conn);
     }
 
 
@@ -629,23 +611,15 @@ public class DBUtil {
     }
 
 
-    public int update(Object obj, String tableName) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("更新对象不能为Null");
-        }
-
-        return this.execute(buildUpdateSql(obj, tableName));
-    }
-
-
-    public int update(Connection conn, Object obj, String tableName)
+    public int update(Connection conn, Object obj)
             throws Exception {
         if (null == obj) {
             throw new NullPointerException("更新对象不能为Null");
         }
 
-        return this.execute(buildUpdateSql(obj, tableName), conn);
+        return this.execute(buildUpdateSql(obj), conn);
     }
+
 
 
     public int delete(Object obj) throws Exception {
@@ -657,22 +631,13 @@ public class DBUtil {
     }
 
 
-    public int delete(Object obj, String tableName) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("删除对象不能为Null");
-        }
-
-        return this.execute(buildDeleteSql(obj, tableName));
-    }
-
-
-    public int delete(Connection conn, Object obj, String tableName)
+    public int delete(Connection conn, Object obj)
             throws Exception {
         if (null == obj) {
             throw new NullPointerException("删除的对象不能为Null");
         }
 
-        return this.execute(buildDeleteSql(obj, tableName), conn);
+        return this.execute(buildDeleteSql(obj), conn);
     }
 
 
@@ -774,6 +739,7 @@ public class DBUtil {
      * @throws Exception
      */
     public void transCommit() throws Exception {
+        print("事务提交");
         conn.commit();
         closeConnection();
     }
@@ -785,6 +751,7 @@ public class DBUtil {
      * @throws Exception
      */
     public void transRollBack() throws Exception {
+        print("事务回滚");
         conn.rollback();
         closeConnection();
     }

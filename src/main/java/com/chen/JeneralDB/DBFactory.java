@@ -159,6 +159,9 @@ public class DBFactory {
         buffer.append("\r\n");
         buffer.append("\r\n");
 
+        buffer.append("import com.chen.JeneralDB.annotation.Column;\r\n\r\n");
+        buffer.append("import com.chen.JeneralDB.annotation.Table;\r\n\r\n");
+
         if (utilPack) {
             buffer.append("import java.util.Date;\r\n\r\n");
         }
@@ -178,6 +181,7 @@ public class DBFactory {
         buffer.append(" */");
         buffer.append("\r\n");
 
+        buffer.append("@Table(\"").append(allTableName).append("\")\r\n");
         buffer.append("public class " + formatClassName(allTableName) + " {\r\n");
         buffer.append("\r\n");
 
@@ -244,6 +248,7 @@ public class DBFactory {
      * */
     private void processAllAttrs(StringBuffer buffer, String[] columnNames, String[] columnTypes) {
         for (int i = 0; i < columnNames.length; i++) {
+            buffer.append("\t@Column(\"").append(columnNames[i]).append("\")\r\n");
             buffer.append("\tprivate ");
             buffer.append(sqlType2JavaType(columnTypes[i]));
             buffer.append(" ");
