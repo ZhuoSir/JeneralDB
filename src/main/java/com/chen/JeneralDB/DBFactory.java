@@ -14,7 +14,7 @@ import java.util.Properties;
  * 负责根据数据库创建持久层代码的工厂类
  *
  * @author 陈卓
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class DBFactory {
 
@@ -34,7 +34,14 @@ public class DBFactory {
 
     private boolean decimalPack = false;
 
+    private String database;
+
     private DBFactory() {
+        try {
+            this.database = getProperty("db_name");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -159,8 +166,8 @@ public class DBFactory {
         buffer.append("\r\n");
         buffer.append("\r\n");
 
-        buffer.append("import com.chen.JeneralDB.annotation.Column;\r\n\r\n");
-        buffer.append("import com.chen.JeneralDB.annotation.Table;\r\n\r\n");
+        buffer.append("import com.chen.JeneralDB.annotation.Column;\r\n");
+        buffer.append("import com.chen.JeneralDB.annotation.Table;r\n");
 
         if (utilPack) {
             buffer.append("import java.util.Date;\r\n\r\n");
@@ -185,7 +192,7 @@ public class DBFactory {
         buffer.append("public class " + formatClassName(allTableName) + " {\r\n");
         buffer.append("\r\n");
 
-        processAllAttrs(buffer, columnNames, columnType);
+        processAllAttrs(buffer, allTableName, columnNames, columnType);
 
         processAllMethod(buffer, columnNames, columnType);
 
@@ -246,9 +253,23 @@ public class DBFactory {
      * 生成所有属性
      *
      * */
-    private void processAllAttrs(StringBuffer buffer, String[] columnNames, String[] columnTypes) {
+    private void processAllAttrs(StringBuffer buffer, String tableName, String[] columnNames, String[] columnTypes) {
         for (int i = 0; i < columnNames.length; i++) {
-            buffer.append("\t@Column(\"").append(columnNames[i]).append("\")\r\n");
+            String indexType = getIndexOfcolumn(columnNames[i], tableName);
+            if (null != indexType) {
+                buffer.append("\t@Column(value = \"").append(columnNames[i]).append("\"");
+                if ("PRIMARY".equals(indexType)) {
+                    buffer.append(", index = Column.index.PRIMARYKEY");
+                } else if ("UNIQUE".equals(indexType)) {
+                    buffer.append(", index = Column.index.UNIQUE");
+                } else if ("FULLTEXT".equals(indexType)) {
+                    buffer.append(", index = Column.index.FULLTEXT");
+                }
+            } else {
+                buffer.append("\t@Column(\"").append(columnNames[i]).append("\"");
+            }
+
+            buffer.append(")\r\n");
             buffer.append("\tprivate ");
             buffer.append(sqlType2JavaType(columnTypes[i]));
             buffer.append(" ");
@@ -257,6 +278,20 @@ public class DBFactory {
             buffer.append("\r\n");
         }
     }
+
+
+    private String getIndexOfcolumn(String columnName, String tableName) {
+        String sql = "show index from " + tableName + " where Column_name = ?;";
+        try {
+            DataTable dt = DBUtil.getInstance().queryDataTable(sql, columnName);
+            return !dt.isEmpty() ? dt.getObjectByColumnNameInRow("Key_name", 0).toString() : null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 
 
 //    private String sqlType2JavaType(String sqlType) {
@@ -423,21 +458,7 @@ public class DBFactory {
      * */
     private DataTable getAllPKOfTable(String tableName)
             throws Exception {
-        Properties p = getProperties();
-        String sql = " SELECT\n" +
-                "  t.TABLE_NAME,\n" +
-                "  t.CONSTRAINT_TYPE,\n" +
-                "  c.COLUMN_NAME,\n" +
-                "  c.ORDINAL_POSITION\n" +
-                " FROM\n" +
-                "  INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS t,\n" +
-                "  INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS c\n" +
-                " WHERE\n" +
-                "  t.TABLE_NAME = c.TABLE_NAME\n" +
-                "  AND t.TABLE_SCHEMA = '" + p.getProperty("db_name") + "'\n" +
-                "  AND t.CONSTRAINT_TYPE = 'PRIMARY KEY'" +
-                "  AND t.TABLE_NAME = '" + tableName + "'";
-
+        String sql = "show index from " + tableName + " where key_name = 'PRIMARY';";
         return DBUtil.getInstance().queryDataTable(sql);
     }
 
@@ -449,7 +470,7 @@ public class DBFactory {
     public String[] getAllPkNamesOfTable(String tableName)
             throws Exception {
         DataTable dt = getAllPKOfTable(tableName);
-        Object[] objs = dt.getObjectsByColumnName("COLUMN_NAME");
+        Object[] objs = dt.getObjectsByColumnName("Column_name");
 
         String[] ret = new String[objs.length];
         for (int i = 0; i < objs.length; i++) {

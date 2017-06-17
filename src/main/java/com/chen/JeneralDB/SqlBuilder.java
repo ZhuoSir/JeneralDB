@@ -2,6 +2,7 @@ package com.chen.JeneralDB;
 
 import com.chen.JeneralDB.annotation.Column;
 import com.chen.JeneralDB.annotation.Table;
+import com.chen.JeneralDB.exception.RespositoryException;
 import com.chen.JeneralDB.jdbc.Query;
 import com.chen.JeneralDB.jdbc.SortDirection;
 
@@ -136,17 +137,26 @@ public final class SqlBuilder {
             }
         }
 
-        String pk = DBFactory.getInstance().getAllPkNamesOfTable(tName)[0];
+        String pk = null;
         Object value = null;
 
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
             field.setAccessible(true);
 
-            if (field.getName().equals(pk)) {
+            if (field.isAnnotationPresent(Column.class)
+                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY) {
+                pk = field.getName();
+            }
+
+            if (null != pk) {
                 value = field.get(obj);
                 break;
             }
+        }
+
+        if (null == pk) {
+            throw new RespositoryException(tName + "表没有主键，无法完成自主更新操作");
         }
 
         if (null != value) {
@@ -171,20 +181,26 @@ public final class SqlBuilder {
 
         StringBuilder delete = new StringBuilder("delete from " + tName);
 
-        String pk = DBFactory.getInstance().getAllPkNamesOfTable(tName)[0];
-        delete.append(" where " + pk);
-
+        String pk = null;
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            String columnName = field.getName();
-            Object value = null;
-
             field.setAccessible(true);
-            if (columnName.equals(pk)) {
-                value = field.get(obj);
+
+            if (field.isAnnotationPresent(Column.class)
+                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY) {
+                pk = field.getName();
+            }
+
+            if (null != pk) {
+                delete.append(" where " + pk);
+                Object value = field.get(obj);
                 delete.append(" = " + value);
                 break;
             }
+        }
+
+        if (null == pk) {
+            throw new RespositoryException(tName + "表没有主键，无法完成自主删除");
         }
 
         return delete.toString();

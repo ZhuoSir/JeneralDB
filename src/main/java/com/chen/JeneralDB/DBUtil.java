@@ -14,7 +14,7 @@ import static com.chen.JeneralDB.SqlBuilder.*;
  * 数据库操作工具类
  *
  * @author 陈卓
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class DBUtil {
 
@@ -61,7 +61,7 @@ public class DBUtil {
         properties.load(DBUtil.class.getResourceAsStream("/JeneralDB-config.properties"));
         Class.forName(properties.getProperty("db_driver"));
 
-        conn = DriverManager.getConnection(
+        Connection conn = DriverManager.getConnection(
                 properties.getProperty("db_url"),
                 properties.getProperty("db_username"),
                 properties.getProperty("db_password"));
@@ -215,7 +215,7 @@ public class DBUtil {
             throws Exception {
         checkConnect();
 
-        List<T> lists = new ArrayList<T>();
+        List<T> lists = new ArrayList<>();
         PreparedStatement preStmt = null;
         ResultSet rs = null;
 
@@ -379,7 +379,7 @@ public class DBUtil {
      * */
     public DataTable queryDataTable(String sql, Object... params) throws Exception {
         List<Map<String, Object>> list = queryMapList(sql, params);
-        DataTable dataTable = null;
+        DataTable dataTable = new DataTable();
 
         if (null != list && !list.isEmpty()) {
             dataTable = new DataTable(list);
@@ -412,8 +412,6 @@ public class DBUtil {
      * */
     public <T> List<T> queryBeanListByQuery(Query query, Class<T> beanClass)
             throws Exception {
-        String tableName = beanClass.getSimpleName();
-        query.setTableName(tableName);
         DataTable dt = queryByQuery(query);
         return null != dt ? dt.toBeanList(beanClass) : null;
     }
@@ -438,7 +436,7 @@ public class DBUtil {
 
     public Object querySingleOne(String sql, Object... params)
             throws Exception {
-        DataTable dt = null;
+        DataTable dt;
 
         if (null != params)
             dt = queryDataTable(sql, params);
