@@ -84,19 +84,16 @@ public class DBFactory {
      */
     public void createEntitysByTableNames(List<String> tableNames, String directoryPath, String packageName)
             throws Exception {
-        if (null == directoryPath) {
+        if (null == directoryPath)
             directoryPath = getProperties().getProperty("packageOutPath");
-        }
 
-        if (null == packageName) {
+        if (null == packageName)
             packageName = getProperties().getProperty("packageSimplepath");
-        }
 
         File directory = new File(directoryPath);
         if (!directory.exists()
-                && Boolean.valueOf(getProperties().getProperty("autoCreateDir"))) {
+                && Boolean.valueOf(getProperties().getProperty("autoCreateDir")))
             directory.mkdirs();
-        }
 
         for (String tableName : tableNames) {
             parseToJava(tableName, directory.getAbsolutePath(), packageName);
@@ -120,31 +117,21 @@ public class DBFactory {
 
         int size = resultSet.getColumnCount();
         String[] columnNames = new String[size];
-        String[] columnType = new String[size];
-        int[] columnSize = new int[size];
+        String[] columnType  = new String[size];
 
+        utilPack = false; sqlPack = false; decimalPack = false;
         for (int i = 0; i < size; i++) {
             columnNames[i] = resultSet.getColumnName(i + 1);
-            columnType[i] = resultSet.getColumnTypeName(i + 1);
-            columnSize[i] = resultSet.getColumnDisplaySize(i + 1);
+            columnType[i]  = resultSet.getColumnTypeName(i + 1);
 
-            if (columnType[i].equalsIgnoreCase("datetime")
-                    || columnType[i].equalsIgnoreCase("timestamp")
-                        || columnType[i].equalsIgnoreCase("date")
-                            || columnType[i].equalsIgnoreCase("year")) {
+            if ("datetime,timestamp,date,year".contains(columnType[i].toLowerCase()))
                 utilPack = true;
-            }
 
-            if (columnType[i].equalsIgnoreCase("image")
-                    || columnType[i].equalsIgnoreCase("text")) {
+            if ("image,text".contains(columnType[i].toLowerCase()))
                 sqlPack = true;
-            }
 
-            if (columnType[i].equalsIgnoreCase("decimal") || columnType[i].equalsIgnoreCase("numeric")
-                    || columnType[i].equalsIgnoreCase("real") || columnType[i].equalsIgnoreCase("money")
-                    || columnType[i].equalsIgnoreCase("smallmoney")) {
+            if ("decimal,real,numeric,money,smallmoney".contains(columnType[i].toLowerCase()))
                 decimalPack = true;
-            }
         }
 
         String content = parse(allTableName, packageName, columnNames, columnType);
@@ -167,19 +154,16 @@ public class DBFactory {
         buffer.append("\r\n");
 
         buffer.append("import com.chen.JeneralDB.annotation.Column;\r\n");
-        buffer.append("import com.chen.JeneralDB.annotation.Table;r\n");
+        buffer.append("import com.chen.JeneralDB.annotation.Table;\r\n");
 
-        if (utilPack) {
+        if (utilPack)
             buffer.append("import java.util.Date;\r\n\r\n");
-        }
 
-        if (sqlPack) {
+        if (sqlPack)
             buffer.append("import java.sql.*;\r\n\r\n");
-        }
 
-        if (decimalPack) {
+        if (decimalPack)
             buffer.append("import java.math.BigDecimal;\r\n\r\n");
-        }
 
         buffer.append("/**\r\n");
         buffer.append(" * created by JeneralDB at ");
@@ -293,41 +277,6 @@ public class DBFactory {
     }
 
 
-
-//    private String sqlType2JavaType(String sqlType) {
-//        if (sqlType.equalsIgnoreCase("bit")) {
-//            return "Boolean";
-//        } else if (sqlType.equalsIgnoreCase("tinyint")) {
-//            return "byte";
-//        } else if (sqlType.equalsIgnoreCase("smallint")) {
-//            return "short";
-//        } else if (sqlType.equalsIgnoreCase("int") || sqlType.equalsIgnoreCase("integer")) {
-//            return "int";
-//        } else if (sqlType.equalsIgnoreCase("bigint") || sqlType.equalsIgnoreCase("int unsigned")) {
-//            return "long";
-//        } else if (sqlType.equalsIgnoreCase("float")) {
-//            return "float";
-//        } else if (sqlType.equalsIgnoreCase("decimal") || sqlType.equalsIgnoreCase("numeric")
-//                || sqlType.equalsIgnoreCase("real") || sqlType.equalsIgnoreCase("money")
-//                || sqlType.equalsIgnoreCase("smallmoney")) {
-//            return "BigDecimal";
-//        } else if (sqlType.equalsIgnoreCase("varchar") || sqlType.equalsIgnoreCase("char")
-//                || sqlType.equalsIgnoreCase("nvarchar") || sqlType.equalsIgnoreCase("nchar")
-//                || sqlType.equalsIgnoreCase("text")) {
-//            return "String";
-//        } else if (sqlType.equalsIgnoreCase("datetime") || sqlType.equalsIgnoreCase("timestamp")) {
-//            return "Date";
-//        } else if (sqlType.equalsIgnoreCase("image")) {
-//            return "Blod";
-//        } else if (sqlType.equalsIgnoreCase("double")) {
-//            return "double";
-//        } else if (sqlType.equalsIgnoreCase("longblob")) {
-//            return "byte[]";
-//        }
-//        return null;
-//    }
-
-
     private String sqlType2JavaType(String sqlType) {
         String ret = null;
 
@@ -439,8 +388,7 @@ public class DBFactory {
      */
     public String[] getAllTableNamesOfDataBase()
             throws Exception {
-        Properties p = getProperties();
-        String sql = String.format(allTableNameSql, p.getProperty("db_name"), p.getProperty("db_type"));
+        String sql = String.format(allTableNameSql, getProperty("db_name"), getProperty("db_type"));
         Object[] allTableNames = DBUtil.getInstance().queryDataTable(sql).getObjectsByColumnName("TABLE_NAME");
         String[] result = new String[allTableNames.length];
 
