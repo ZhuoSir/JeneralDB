@@ -24,38 +24,28 @@ public final class SqlBuilder {
     public static String buildInsertSql(Object obj)
             throws IllegalAccessException {
         StringBuilder columns = new StringBuilder(" insert into ");
-        StringBuilder values = new StringBuilder(" ) values (");
+        StringBuilder values  = new StringBuilder(" ) values (");
 
-        Class<?> t = obj.getClass();
-        Field[] fields = t.getDeclaredFields();
+        Class<?> tclass = obj.getClass();
+        Field[]  fields = tclass.getDeclaredFields();
 
-        if (t.isAnnotationPresent(Table.class)) {
-            columns.append(t.getAnnotation(Table.class).value());
-        } else {
-            columns.append(t.getSimpleName());
-        }
+        if (tclass.isAnnotationPresent(Table.class))
+            columns.append(tclass.getAnnotation(Table.class).value());
+        else
+            columns.append(tclass.getSimpleName());
         columns.append(" ( ");
 
         int size = fields.length, columnNum = 0;
         for (Field field : fields) {
             field.setAccessible(true);
-
-            String columnName;
-            if (field.isAnnotationPresent(Column.class)) {
-                columnName = field.getAnnotation(Column.class).value();
-            } else {
-                columnName = field.getName();
-            }
-
+            String columnName = field.isAnnotationPresent(Column.class) ? field.getAnnotation(Column.class).value() : field.getName();
             String columnType = field.getType().getTypeName();
-            Object value = field.get(obj);
+            Object value      = field.get(obj);
 
-            if (null == value) {
+            if (null == value)
                 continue;
-            }
 
             columns.append(columnName);
-
             addValueToValues(values, columnName, columnType, value);
 
             if (columnNum++ < size - 1) {
@@ -64,13 +54,11 @@ public final class SqlBuilder {
             }
         }
 
-        if (columns.charAt(columns.length() - 1) == ',') {
+        if (columns.charAt(columns.length() - 1) == ',')
             columns = columns.deleteCharAt(columns.length() - 1);
-        }
 
-        if (values.charAt(values.length() - 1) == ',') {
+        if (values.charAt(values.length() - 1) == ',')
             values = values.deleteCharAt(values.length() - 1);
-        }
 
         values.append(" ) ");
         columns.append(values);
@@ -101,53 +89,39 @@ public final class SqlBuilder {
 
     public static String buildUpdateSql(Object obj)
             throws Exception {
-        Class<?> t = obj.getClass();
-        Field[] fields = t.getDeclaredFields();
-        String tName;
-        if (t.isAnnotationPresent(Table.class)) {
-            tName = t.getAnnotation(Table.class).value();
-        } else {
-            tName = t.getSimpleName();
-        }
+        Class<?> tClass = obj.getClass();
+        Field[]  fields = tClass.getDeclaredFields();
+        String   tName  = tClass.isAnnotationPresent(Table.class) ? tClass.getAnnotation(Table.class).value() : tClass.getSimpleName();
 
         StringBuilder update = new StringBuilder(" update " + tName);
 
         for (int i = 0, size = fields.length; i < size; i++) {
             Field field = fields[i];
-            String columnName;
-            if (field.isAnnotationPresent(Column.class)) {
-                columnName = field.getAnnotation(Column.class).value();
-            } else {
-                columnName = field.getName();
-            }
-
+            String columnName = field.isAnnotationPresent(Column.class) ? field.getAnnotation(Column.class).value() : field.getName();
             String columnType = field.getType().getTypeName();
+
             field.setAccessible(true);
             Object value = field.get(obj);
 
-            if (i == 0) {
+            if (i == 0)
                 update.append(" set ");
-            }
 
             update.append(columnName + " = ");
             addValueToValues(update, columnName, columnType, value);
 
-            if (i < size - 1) {
+            if (i < size - 1)
                 update.append(", ");
-            }
         }
 
-        String pk = null;
+        String pk    = null;
         Object value = null;
 
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             field.setAccessible(true);
 
             if (field.isAnnotationPresent(Column.class)
-                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY) {
+                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY)
                 pk = field.getName();
-            }
 
             if (null != pk) {
                 value = field.get(obj);
@@ -155,9 +129,8 @@ public final class SqlBuilder {
             }
         }
 
-        if (null == pk) {
+        if (null == pk)
             throw new RespositoryException(tName + "表没有主键，无法完成自主更新操作");
-        }
 
         if (null != value) {
             update.append(" where " + pk + " = ");
@@ -170,26 +143,19 @@ public final class SqlBuilder {
 
     public static String buildDeleteSql(Object obj)
             throws Exception {
-        Class<?> t = obj.getClass();
-        Field[] fields = t.getDeclaredFields();
-        String tName;
-        if (t.isAnnotationPresent(Table.class)) {
-            tName = t.getAnnotation(Table.class).value();
-        } else {
-            tName = t.getSimpleName();
-        }
+        Class<?> tClass = obj.getClass();
+        Field[]  fields = tClass.getDeclaredFields();
+        String   tName  = tClass.isAnnotationPresent(Table.class) ? tClass.getAnnotation(Table.class).value() : tClass.getSimpleName();;
 
         StringBuilder delete = new StringBuilder("delete from " + tName);
 
         String pk = null;
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             field.setAccessible(true);
 
             if (field.isAnnotationPresent(Column.class)
-                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY) {
+                    && field.getAnnotation(Column.class).index() == Column.index.PRIMARYKEY)
                 pk = field.getName();
-            }
 
             if (null != pk) {
                 delete.append(" where " + pk);
@@ -199,9 +165,8 @@ public final class SqlBuilder {
             }
         }
 
-        if (null == pk) {
+        if (null == pk)
             throw new RespositoryException(tName + "表没有主键，无法完成自主删除");
-        }
 
         return delete.toString();
     }
