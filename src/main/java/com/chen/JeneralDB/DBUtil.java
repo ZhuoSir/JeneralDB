@@ -485,9 +485,9 @@ public class DBUtil {
     }
 
 
-    public int execute(String sql, Connection conn) throws SQLException {
+    public int execute(String sql, Connection conn) throws Exception {
         if (null == conn || conn.isClosed()) {
-            throw new SQLException();
+            conn = openConnection();
         }
 
         int result;
@@ -583,17 +583,13 @@ public class DBUtil {
 
 
     public int save(Object obj) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("保存对象不能为Null");
-        }
-
-        return this.execute(buildInsertSql(obj));
+        return save(conn, obj);
     }
 
 
     public int save(Connection conn, Object obj) throws Exception {
         if (null == obj) {
-            throw new NullPointerException("保存对象不能为Null");
+            throw new IllegalArgumentException("保存对象不能为Null");
         }
 
         return this.execute(buildInsertSql(obj), conn);
@@ -601,38 +597,48 @@ public class DBUtil {
 
 
     public int update(Object obj) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("更新对象不能为Null");
-        }
-
-        return this.execute(buildUpdateSql(obj));
+        return update(conn, obj);
     }
 
 
     public int update(Connection conn, Object obj)
             throws Exception {
         if (null == obj) {
-            throw new NullPointerException("更新对象不能为Null");
+            throw new IllegalArgumentException("更新对象不能为Null");
         }
 
         return this.execute(buildUpdateSql(obj), conn);
     }
 
 
+    public int saveOrUpdate(Object obj) throws Exception {
+        return saveOrUpdate(conn, obj);
+    }
 
-    public int delete(Object obj) throws Exception {
-        if (null == obj) {
-            throw new NullPointerException("删除对象不能为Null");
+
+    public int saveOrUpdate(Connection conn, Object obj) throws Exception {
+        if (Objects.isNull(obj)) {
+            throw new IllegalArgumentException("操作对象不能为Null");
         }
 
-        return this.execute(buildDeleteSql(obj));
+        int count = this.execute(buildUpdateSql(obj), conn);
+        if (count == 0) {
+            count = this.execute(buildInsertSql(obj), conn);
+        }
+
+        return count;
+    }
+
+
+    public int delete(Object obj) throws Exception {
+        return delete(conn, obj);
     }
 
 
     public int delete(Connection conn, Object obj)
             throws Exception {
         if (null == obj) {
-            throw new NullPointerException("删除的对象不能为Null");
+            throw new IllegalArgumentException("删除的对象不能为Null");
         }
 
         return this.execute(buildDeleteSql(obj), conn);
