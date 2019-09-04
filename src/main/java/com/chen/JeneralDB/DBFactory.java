@@ -35,8 +35,10 @@ public class DBFactory {
     private boolean decimalPack = false;
 
     private String database;
+    
+    private DBUtil dbUtil;
 
-    private DBFactory() {
+    public DBFactory() {
         try {
             this.database = getProperty("db_name");
         } catch (IOException e) {
@@ -44,15 +46,9 @@ public class DBFactory {
         }
     }
 
-
-    public static synchronized DBFactory getInstance() {
-        if (null == dbFactory) {
-            dbFactory = new DBFactory();
-        }
-
-        return dbFactory;
+    public void setDbUtil(DBUtil dbUtil) {
+        this.dbUtil = dbUtil;
     }
-
 
     /**
      * 根据数据库生成实体类
@@ -72,7 +68,7 @@ public class DBFactory {
      */
     public void createEntitysByTableNames(List<String> tableNames)
             throws Exception {
-        createEntitysByTableNames(tableNames, null, null);
+        createEntitysByTableNames(tableNames, null, null, null);
     }
 
 
@@ -82,7 +78,7 @@ public class DBFactory {
      * @param tableNames    表名
      * @param directoryPath 文件夹名
      */
-    public void createEntitysByTableNames(List<String> tableNames, String directoryPath, String packageName)
+    public void createEntitysByTableNames(List<String> tableNames, String directoryPath, String packageName, String classNamePostfix)
             throws Exception {
         if (null == directoryPath)
             directoryPath = getProperties().getProperty("packageOutPath");
@@ -96,7 +92,7 @@ public class DBFactory {
             directory.mkdirs();
 
         for (String tableName : tableNames) {
-            parseToJava(tableName, directory.getAbsolutePath(), packageName);
+            parseToJava(tableName, directory.getAbsolutePath(), packageName, classNamePostfix);
         }
     }
 
@@ -104,7 +100,7 @@ public class DBFactory {
     /**
      * 生成Java文件的主体类
      */
-    private void parseToJava(String allTableName, String directory, String packageName)
+    private void parseToJava(String allTableName, String directory, String packageName, String postfix)
             throws Exception {
         if (null == allTableName || allTableName.isEmpty() || null == directory) {
             throw new NullPointerException();
@@ -113,16 +109,18 @@ public class DBFactory {
         StringBuilder sqlBuilder = new StringBuilder("select * from ");
         sqlBuilder.append(allTableName);
 
-        ResultSetMetaData resultSet = DBUtil.getInstance().queryResultSetMetaData(sqlBuilder.toString());
+        ResultSetMetaData resultSet = dbUtil.queryResultSetMetaData(sqlBuilder.toString());
 
         int size = resultSet.getColumnCount();
         String[] columnNames = new String[size];
         String[] columnType  = new String[size];
+        Integer[] columntSize = new Integer[size];
 
         utilPack = false; sqlPack = false; decimalPack = false;
         for (int i = 0; i < size; i++) {
             columnNames[i] = resultSet.getColumnName(i + 1);
             columnType[i]  = resultSet.getColumnTypeName(i + 1);
+            columntSize[i] = resultSet.getColumnDisplaySize(i + 1);
 
             if ("datetime,timestamp,date,year".contains(columnType[i].toLowerCase()))
                 utilPack = true;
@@ -134,18 +132,18 @@ public class DBFactory {
                 decimalPack = true;
         }
 
-        String content = parse(allTableName, packageName, columnNames, columnType);
+        String content = parse(allTableName, packageName, postfix,columnNames, columnType, columntSize);
 
         StringBuffer javaFilePath = new StringBuffer(directory);
         javaFilePath.append(File.separator);
-        javaFilePath.append(formatClassName(allTableName));
+        javaFilePath.append(formatClassName(allTableName, postfix));
         javaFilePath.append(".java");
 
         writeToJavaFile(content, javaFilePath.toString());
     }
 
 
-    private String parse(String allTableName, String packageName, String[] columnNames, String[] columnType)
+    private String parse(String allTableName, String packageName, String postfix, String[] columnNames, String[] columnType, Integer[] columnSize)
             throws IOException {
         StringBuffer buffer = new StringBuffer();
 
@@ -173,14 +171,14 @@ public class DBFactory {
         buffer.append("\r\n");
 
         buffer.append("@Table(\"").append(allTableName).append("\")\r\n");
-        buffer.append("public class " + formatClassName(allTableName) + " {\r\n");
+        buffer.append("public class " + formatClassName(allTableName, postfix) + " {\r\n");
         buffer.append("\r\n");
 
-        processAllAttrs(buffer, allTableName, columnNames, columnType);
+        processAllAttrs(buffer, allTableName, columnNames, columnType, columnSize);
 
-        processAllMethod(buffer, columnNames, columnType);
+        processAllMethod(buffer, columnNames, columnType, columnSize);
 
-        processToString(buffer, columnNames, columnType);
+        processToString(buffer, columnNames, columnType, columnSize);
 
         buffer.append("}\r\n");
 
@@ -192,7 +190,7 @@ public class DBFactory {
      * 生成toString()方法
      *
      * */
-    private void processToString(StringBuffer buffer, String[] columnNames, String[] columnType) {
+    private void processToString(StringBuffer buffer, String[] columnNames, String[] columnType, Integer[] columnSize) {
         buffer.append("\tpublic String toString() {\n");
         buffer.append("\t\tStringBuffer string = new StringBuffer();\n");
 
@@ -218,14 +216,14 @@ public class DBFactory {
      * 生成所有get set 方法
      *
      * */
-    private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes) {
+    private void processAllMethod(StringBuffer buffer, String[] colnames, String[] colTypes, Integer[] columnSize) {
         for (int i = 0; i < colnames.length; i++) {
-            buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i]) + " " +
+            buffer.append("\tpublic void set" + initCap(colnames[i]) + "(" + sqlType2JavaType(colTypes[i], columnSize[i]) + " " +
                     colnames[i] + ") {\r\n");
             buffer.append("\t\tthis." + colnames[i] + " = " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
-            buffer.append("\tpublic " + sqlType2JavaType(colTypes[i]) + " get" + initCap(colnames[i]) + "() {\r\n");
+            buffer.append("\tpublic " + sqlType2JavaType(colTypes[i], columnSize[i]) + " get" + initCap(colnames[i]) + "() {\r\n");
             buffer.append("\t\treturn " + colnames[i] + ";\r\n");
             buffer.append("\t}\r\n");
             buffer.append("\r\n");
@@ -237,7 +235,7 @@ public class DBFactory {
      * 生成所有属性
      *
      * */
-    private void processAllAttrs(StringBuffer buffer, String tableName, String[] columnNames, String[] columnTypes) {
+    private void processAllAttrs(StringBuffer buffer, String tableName, String[] columnNames, String[] columnTypes, Integer[] columnSize) {
         for (int i = 0; i < columnNames.length; i++) {
             String indexType = getIndexOfcolumn(columnNames[i], tableName);
             if (null != indexType) {
@@ -255,7 +253,7 @@ public class DBFactory {
 
             buffer.append(")\r\n");
             buffer.append("\tprivate ");
-            buffer.append(sqlType2JavaType(columnTypes[i]));
+            buffer.append(sqlType2JavaType(columnTypes[i], columnSize[i]));
             buffer.append(" ");
             buffer.append(columnNames[i]);
             buffer.append(";\r\n");
@@ -267,7 +265,7 @@ public class DBFactory {
     private String getIndexOfcolumn(String columnName, String tableName) {
         String sql = "show index from " + tableName + " where Column_name = ?;";
         try {
-            DataTable dt = DBUtil.getInstance().queryDataTable(sql, columnName);
+            DataTable dt = dbUtil.queryDataTable(sql, columnName);
             return !dt.isEmpty() ? dt.getObjectByColumnNameInRow("Key_name", 0).toString() : null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -277,7 +275,7 @@ public class DBFactory {
     }
 
 
-    private String sqlType2JavaType(String sqlType) {
+    private String sqlType2JavaType(String sqlType, Integer integer) {
         String ret = null;
 
         switch (sqlType.toLowerCase()) {
@@ -285,7 +283,11 @@ public class DBFactory {
                 ret = "Boolean";
                 break;
             case "tinyint":
-                ret = "byte";
+                if (integer == 1) {
+                    ret = "Boolean";
+                } else {
+                    ret = "byte";
+                }
                 break;
             case "smallint":
                 ret = "short";
@@ -341,7 +343,7 @@ public class DBFactory {
      * 根据表名格式化生成类名
      *
      * */
-    private String formatClassName(String allTableName) {
+    private String formatClassName(String allTableName, String postfix) {
         if (null == allTableName || allTableName.isEmpty()) {
             return allTableName;
         }
@@ -360,6 +362,9 @@ public class DBFactory {
             allTableName = allTableName.replaceAll("[_]", "");
         }
 
+        if (null != postfix) {
+            allTableName = allTableName + postfix;
+        }
         return allTableName;
     }
 
@@ -389,7 +394,7 @@ public class DBFactory {
     public String[] getAllTableNamesOfDataBase()
             throws Exception {
         String sql = String.format(allTableNameSql, getProperty("db_name"), getProperty("db_type"));
-        Object[] allTableNames = DBUtil.getInstance().queryDataTable(sql).getObjectsByColumnName("TABLE_NAME");
+        Object[] allTableNames = dbUtil.queryDataTable(sql).getObjectsByColumnName("TABLE_NAME");
         String[] result = new String[allTableNames.length];
 
         for (int i = 0; i < allTableNames.length; i++) {
@@ -407,7 +412,7 @@ public class DBFactory {
     private DataTable getAllPKOfTable(String tableName)
             throws Exception {
         String sql = "show index from " + tableName + " where key_name = 'PRIMARY';";
-        return DBUtil.getInstance().queryDataTable(sql);
+        return dbUtil.queryDataTable(sql);
     }
 
 
@@ -474,6 +479,5 @@ public class DBFactory {
         printWriter.write(content);
         printWriter.flush();
         printWriter.close();
-        DBUtil.print("成功创建实体类" + javaFile.getPath());
     }
 }

@@ -30,7 +30,7 @@ public final class JdbcRepository<T> implements Repository<T> {
     public int add(T t) throws Exception {
         transaction = beginTransaction();
 
-        dbUtil.setConnection(Connections.getConnection());
+//        dbUtil.setConnection(Connections.getConnection());
         dbUtil.save(t);
 
         return 0;

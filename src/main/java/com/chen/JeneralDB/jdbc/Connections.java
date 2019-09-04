@@ -67,13 +67,12 @@ public final class Connections {
                 } else if ("druid".equals(poolType)) {
 
                 } else if ("none".equals(poolType)) {
-                    DBUtil.print("Do not use database connection pool");
+                    System.out.println("Do not use database connection pool");
                 }
 
             }
         } catch (Exception e) {
             e.printStackTrace();
-            DBUtil.print("Can not initialize database connection");
         }
     }
 

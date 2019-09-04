@@ -2,8 +2,11 @@ package com.chen.JeneralDB;
 
 
 import com.chen.JeneralDB.jdbc.Query;
+import com.chen.JeneralDB.transaction.SimpleTransaction;
+import com.chen.JeneralDB.transaction.Transaction;
 import com.chen.JeneralDB.utils.ReflectUtil;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
@@ -19,16 +22,16 @@ import static com.chen.JeneralDB.SqlBuilder.*;
  */
 public class DBUtil {
 
-    private Connection conn = null;
+    private DataSource dataSource;
 
     private static volatile DBUtil dbUtil;
 
     private static boolean AutoCommit = true;
 
-    private DBUtil() {
+    public DBUtil() {
     }
 
-
+    @Deprecated
     public static DBUtil getInstance() {
         if (null == dbUtil) {
             synchronized (DBUtil.class) {
@@ -41,15 +44,9 @@ public class DBUtil {
         return dbUtil;
     }
 
-
-    /**
-     * Connection配置
-     *
-     * */
-    public void setConnection(Connection conn) {
-        this.conn = conn;
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
-
 
     /**
      * 打开数据连接方法<br>
@@ -58,33 +55,11 @@ public class DBUtil {
      * */
     public Connection openConnection()
             throws Exception {
-        Properties properties = new Properties();
-        properties.load(DBUtil.class.getResourceAsStream("/JeneralDB-config.properties"));
-        Class.forName(properties.getProperty("db_driver"));
-
-        Connection conn = DriverManager.getConnection(
-                properties.getProperty("db_url"),
-                properties.getProperty("db_username"),
-                properties.getProperty("db_password"));
-        conn.setTransactionIsolation(Integer.valueOf(properties.getProperty("db_transactionIsolation")));
-        conn.setAutoCommit(AutoCommit);
-
-        return conn;
-    }
-
-
-    /**
-     * 关闭数据库连接方法
-     *
-     * */
-    public void closeConnection() throws SQLException {
-        try {
-            if (null != conn) {
-                conn.close();
-            }
-        } finally {
-            conn = null;
-            System.gc();
+        if (dataSource != null) {
+            Connection conn = dataSource.getConnection();
+            return conn;
+        } else {
+            throw new NullPointerException("DataSource is null...");
         }
     }
 
@@ -98,17 +73,17 @@ public class DBUtil {
     @Deprecated
     public List<Map<String, Object>> queryMapList(String sql)
             throws Exception {
-        checkConnect();
 
         List<Map<String, Object>> lists = new ArrayList<>();
         Statement stmt = null;
         ResultSet rs = null;
-
+        
+        Connection conn = openConnection();
         try {
-            stmt = conn.createStatement();
+            stmt = openConnection().createStatement();
             rs = stmt.executeQuery(sql);
             genDataFromResultSet(rs, lists);
-            print("执行sql: " + sql);
+            
         } finally {
             if (null != rs)
                 rs.close();
@@ -133,7 +108,7 @@ public class DBUtil {
     @Deprecated
     public List<Map<String, Object>> queryMapList(String sql, Object... params)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         List<Map<String, Object>> lists = new ArrayList<>();
         PreparedStatement statement = null;
@@ -151,7 +126,7 @@ public class DBUtil {
 
             rs = statement.executeQuery();
             genDataFromResultSet(rs, lists);
-            print("执行sql: " + sql);
+            
         } finally {
             if (null != rs)
                 rs.close();
@@ -214,7 +189,7 @@ public class DBUtil {
      * */
     public <T> List<T> queryBeanList(String sql, Class<T> beanClass, Object... params)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         List<T> lists = new ArrayList<>();
         PreparedStatement preStmt = null;
@@ -230,7 +205,7 @@ public class DBUtil {
             }
 
             rs = preStmt.executeQuery();
-            print("执行sql: " + sql);
+            
             Field[] fields = ReflectUtil.getAllDeclaredFields(beanClass);
 
             for (Field f : fields) {
@@ -248,6 +223,7 @@ public class DBUtil {
 
                     } catch (Exception e) {
                         e.printStackTrace();
+                        throw e;
                     }
                 }
                 lists.add(t);
@@ -276,7 +252,7 @@ public class DBUtil {
      * */
     public <T> List<T> queryBeanListNew(Class<T> beanClass, String sql, Object... params)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         List<T>           lists     = new ArrayList<T>();
         PreparedStatement preStmt   = null;
@@ -307,7 +283,7 @@ public class DBUtil {
                         Object value = resultSet.getObject(columnArr[i]);
                         setValue(t, field, value);
                     } catch (NoSuchFieldException e) {
-                        print(beanClass.getSimpleName() + "没有" + columnArr[i] + "此属性;");
+                        throw e;
                     }
                 }
 
@@ -460,7 +436,7 @@ public class DBUtil {
 
     public ResultSetMetaData queryResultSetMetaData(String sql)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         PreparedStatement preStmt = conn.prepareStatement(sql);
         return preStmt.getMetaData();
@@ -469,12 +445,12 @@ public class DBUtil {
 
     public int execute(String sql)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         int result;
 
         Statement statement = conn.createStatement();
-        print("执行sql: " + sql);
+        
         result = statement.executeUpdate(sql);
         statement.close();
 
@@ -494,7 +470,7 @@ public class DBUtil {
         int result;
 
         Statement statement = conn.createStatement();
-        print("执行sql: " + sql);
+        
         result = statement.executeUpdate(sql);
 
         statement.close();
@@ -505,13 +481,13 @@ public class DBUtil {
 
     public int execute(String sql, Object... params)
             throws Exception {
-        checkConnect();
+        Connection conn = openConnection();
 
         int result;
 
         PreparedStatement preStmt = conn.prepareStatement(sql);
         for (int i = 0; i < params.length; i++) {
-            print("执行sql: " + sql);
+            
             preStmt.setObject(i + 1, params[i]);// 下标从1开始
         }
         result = preStmt.executeUpdate();
@@ -527,12 +503,11 @@ public class DBUtil {
 
     public int[] executeAsBatch(List<String> sqlList)
             throws Exception {
-        return executeAsBatch(conn, sqlList.toArray(new String[]{}));
+        return executeAsBatch(openConnection(), sqlList.toArray(new String[]{}));
     }
 
 
     public int[] executeAsBatch(Connection conn, String[] sqlArray) throws Exception {
-        checkConnect();
 
         int[] result;
 
@@ -540,7 +515,7 @@ public class DBUtil {
 
         for (String sql : sqlArray) {
             stmt.addBatch(sql);
-            print("执行sql: " + sql);
+            
         }
 
         result = stmt.executeBatch();
@@ -558,8 +533,9 @@ public class DBUtil {
             throws Exception {
         PreparedStatement preStmt = null;
 
+        Connection conn = openConnection();
         try {
-            preStmt = openConnection().prepareStatement(sql);
+            preStmt = conn.prepareStatement(sql);
 
             for (int i = 0; i < params.length; i++) {
                 Object[] rowParams = params[i];
@@ -570,7 +546,7 @@ public class DBUtil {
                 }
 
                 preStmt.addBatch();
-                print("执行sql: " + sql);
+                
             }
 
             return preStmt.executeBatch();
@@ -584,7 +560,7 @@ public class DBUtil {
 
 
     public int save(Object obj) throws Exception {
-        return save(conn, obj);
+        return save(openConnection(), obj);
     }
 
 
@@ -598,7 +574,7 @@ public class DBUtil {
 
 
     public int update(Object obj) throws Exception {
-        return update(conn, obj);
+        return update(openConnection(), obj);
     }
 
 
@@ -613,7 +589,7 @@ public class DBUtil {
 
 
     public int saveOrUpdate(Object obj) throws Exception {
-        return saveOrUpdate(conn, obj);
+        return saveOrUpdate(openConnection(), obj);
     }
 
 
@@ -632,7 +608,7 @@ public class DBUtil {
 
 
     public int delete(Object obj) throws Exception {
-        return delete(conn, obj);
+        return delete(openConnection(), obj);
     }
 
 
@@ -679,48 +655,25 @@ public class DBUtil {
             f.set(t, new Time(((Time) value).getTime()));
         } else if ("java.sql.Timestamp".equals(n)) {
             f.set(t, (Timestamp) value);
+        } else if ("java.lang.Boolean".equals(n) || "boolean".equals(n)) {
+            f.set(t, (Boolean)value);
         } else {
             throw new Exception("SqlError：暂时不支持此数据类型，请使用其他类型代替此类型！");
         }
     }
-
-
-    /**
-     * 格式打印输出
-     */
-    public static void print(String content) {
-        if (null == content) {
-            return;
-        }
-
-        StringBuilder builder = new StringBuilder("JeneralDB：");
-        builder.append(content);
-        System.out.println(builder.toString());
-    }
-
-
-    /**
-     * 检查连接是否开启，若数据库连接尚未开启，开启之。
-     *
-     * @throws Exception
-     */
-    public void checkConnect() throws Exception {
-        if (null == conn || conn.isClosed()) {
-            conn = openConnection();
-        }
-    }
-
-
+    
     /**
      * 开启事务。若数据库连接尚未开启，开启之。
      *
      * @throws Exception
      */
-    public void transBegin() throws Exception {
-        checkConnect();
+    public Transaction transBegin() throws Exception {
+        Connection conn = openConnection();
 
         conn.setAutoCommit(false);
         this.AutoCommit = false;
+        Transaction transaction = new SimpleTransaction(conn);
+        return transaction;
     }
 
 
@@ -729,12 +682,15 @@ public class DBUtil {
      *
      * @param isolationLevel 隔离等级
      * */
-    public void transBegin(int isolationLevel) throws Exception {
-        checkConnect();
+    public Transaction transBegin(int isolationLevel) throws Exception {
+        Connection conn = openConnection();
 
         conn.setTransactionIsolation(isolationLevel);
         conn.setAutoCommit(false);
         this.AutoCommit = false;
+
+        Transaction transaction = new SimpleTransaction(conn);
+        return transaction;
     }
 
 
@@ -743,10 +699,8 @@ public class DBUtil {
      *
      * @throws Exception
      */
-    public void transCommit() throws Exception {
-        print("事务提交");
-        conn.commit();
-        closeConnection();
+    public void transCommit(Transaction transaction) throws Exception {
+        transaction.commit();
     }
 
 
@@ -755,9 +709,7 @@ public class DBUtil {
      *
      * @throws Exception
      */
-    public void transRollBack() throws Exception {
-        print("事务回滚");
-        conn.rollback();
-        closeConnection();
+    public void transRollBack(Transaction transaction) throws Exception {
+        transaction.rollback();
     }
 }

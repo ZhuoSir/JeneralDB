@@ -71,8 +71,9 @@ public final class SqlBuilder {
         if (null == value) {
             values.append("null");
         } else {
-            if ("java.lang.Boolean".equals(columnType)) {
-                values.append(value.toString());
+            if ("java.lang.Boolean".equals(columnType) || "boolean".equals(columnType)) {
+                int valueTinyInt = (Boolean) value ? 1 : 0;
+                values.append(valueTinyInt);
             } else if ("java.util.Date".equals(columnType)) {
                 SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 values.append("'");

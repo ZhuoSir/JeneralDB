@@ -1,6 +1,5 @@
 package test;
 
-import bean.MemMember;
 import com.chen.JeneralDB.DBFactory;
 import com.chen.JeneralDB.DBUtil;
 import com.chen.JeneralDB.DataTable;
@@ -79,7 +78,7 @@ public class App {
                     add("web_user");
                 }
             };
-            DBFactory.getInstance().createEntityFromDataBase();
+            new DBFactory().createEntityFromDataBase();
 //            DBFactory.getInstance().createEntitysByTableNames(tableNames, "D:\\JAVA\\JeneralDB\\src\\main\\java\\bean2", "bean2");
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,81 +91,24 @@ public class App {
         String sql = "SELECT * FROM mem_member";
         DBUtil dbUtil = DBUtil.getInstance();
 
-        try {
-            DataTable dataTable = dbUtil.queryDataTable(sql);
-            dataTable.print();
-            List<MemMember> memMembers = dataTable.toBeanList(MemMember.class);
-            memMembers.forEach(memMember -> System.out.println(memMember.toString()));
-
-            dataTable = dataTable.filter(new DataTableFilter() {
-                @Override
-                public boolean accept(List<String> column, Object[] row) {
-                    int index = column.indexOf("Status");
-                    return row[index].equals(1);
-                }
-            });
-
-            dataTable.removeRowAtIndex(0);
-            dataTable.print();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public static void save() {
-        MemMember memMember = new MemMember();
-        memMember.setAddTime(new Date());
-        memMember.setNickName("小凤凰");
-        memMember.setPassword("123456789");
-        memMember.setPhoneNumber("18516962543");
-        memMember.setStatus(0);
-        memMember.setRealName("陈卓");
-        memMember.setHeadPicFileURL("sdsdsdsdsd");
-        memMember.setWebLoginFlag(true);
-        memMember.setWXLoginFlag(true);
-        DBUtil dbUtil = DBUtil.getInstance();
-        try {
-            dbUtil.save(memMember, "mem_member");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public static void save2() {
-        MemMember memMember = new MemMember();
-        memMember.setAddTime(new Date());
-        memMember.setNickName("chenzhuo");
-        memMember.setPassword("123456789");
-        memMember.setPhoneNumber("18516962543");
-        memMember.setStatus(0);
-        memMember.setRealName("hi");
-        memMember.setHeadPicFileURL("sdsdsdsdsd");
-        memMember.setWebLoginFlag(true);
-        memMember.setWXLoginFlag(true);
-
-        DBUtil dbUtil = DBUtil.getInstance();
-        try {
-            Transaction transaction = new JdbcTransaction();
-            dbUtil.save(Connections.getConnection(), memMember, "mem_member");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void insertSql() throws IllegalAccessException {
-        MemMember memMember = new MemMember();
-        memMember.setAddTime(new Date());
-        memMember.setNickName("小凤凰");
-        memMember.setPassword("123456789");
-        memMember.setPhoneNumber("18516962543");
-        memMember.setStatus(0);
-        memMember.setRealName("陈卓");
-        memMember.setHeadPicFileURL("sdsdsdsdsd");
-        memMember.setWebLoginFlag(true);
-        memMember.setWXLoginFlag(true);
-
-        System.out.println(DBUtil.getInstance().buildInsertSql(memMember, "mem_member"));
+//        try {
+//            DataTable dataTable = dbUtil.queryDataTable(sql);
+//            dataTable.print();
+//            List<MemMember> memMembers = dataTable.toBeanList(MemMember.class);
+//            memMembers.forEach(memMember -> System.out.println(memMember.toString()));
+//
+//            dataTable = dataTable.filter(new DataTableFilter() {
+//                @Override
+//                public boolean accept(List<String> column, Object[] row) {
+//                    int index = column.indexOf("Status");
+//                    return row[index].equals(1);
+//                }
+//            });
+//
+//            dataTable.removeRowAtIndex(0);
+//            dataTable.print();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 }

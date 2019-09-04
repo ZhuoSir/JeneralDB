@@ -289,7 +289,6 @@ public class DataTable {
     }
 
     public void print() {
-        DBUtil.print("DataTable内容输出：");
         int columnSize = getColumnsSize();
         List<String> column = getColumns();
 

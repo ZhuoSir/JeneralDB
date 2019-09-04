@@ -8,6 +8,6 @@ public class App {
 
     // 创建数据库映射对象
     public static void main(String[] args) throws Exception {
-        DBFactory.getInstance().createEntityFromDataBase();
+        new DBFactory().createEntityFromDataBase();
     }
 }
